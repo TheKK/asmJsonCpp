@@ -1,11 +1,32 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
-import Import
-import Run
+import RIO
 import RIO.Process
 import Options.Applicative.Simple
 import qualified Paths_asmJsonCpp
+
+-- | Command line arguments
+data Options = Options
+  { optionsVerbose :: !Bool
+  }
+
+data App = App
+  { appLogFunc :: !LogFunc
+  , appProcessContext :: !ProcessContext
+  , appOptions :: !Options
+  -- Add other app-specific configuration information here
+  }
+
+instance HasLogFunc App where
+  logFuncL = lens appLogFunc (\x y -> x { appLogFunc = y })
+instance HasProcessContext App where
+  processContextL = lens appProcessContext (\x y -> x { appProcessContext = y })
+
+run :: RIO App ()
+run = do
+  logInfo "We're inside the application!"
 
 main :: IO ()
 main = do
