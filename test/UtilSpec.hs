@@ -1,4 +1,3 @@
-{-# LANGUAGE NoImplicitPrelude #-}
 module UtilSpec (spec) where
 
 import Import
