@@ -3,8 +3,8 @@
 module AsmJsonCpp
   ( AsmObj (..),
     AsmArray (..),
-    AsmJson (..),
-  )
+    AsmJson (..)
+    )
 where
 
 import qualified Data.Text.Lazy as L

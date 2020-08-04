@@ -1,7 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Main (main) where
+module Main
+  ( main
+    )
+where
 
 import Options.Applicative.Simple
 import qualified Paths_asmJsonCpp
@@ -9,16 +12,18 @@ import RIO
 import RIO.Process
 
 -- | Command line arguments
-data Options = Options
-  { optionsVerbose :: !Bool
-  }
+data Options
+  = Options
+      { optionsVerbose :: !Bool
+        }
 
-data App = App
-  { appLogFunc :: !LogFunc,
-    appProcessContext :: !ProcessContext,
-    appOptions :: !Options
-    -- Add other app-specific configuration information here
-  }
+data App
+  = App
+      { appLogFunc :: !LogFunc,
+        appProcessContext :: !ProcessContext,
+        appOptions :: !Options
+        -- Add other app-specific configuration information here
+        }
 
 instance HasLogFunc App where
   logFuncL = lens appLogFunc (\x y -> x {appLogFunc = y})
@@ -39,11 +44,11 @@ main = do
       "Program description, also for command line arguments"
       ( Options
           <$> switch
-            ( long "verbose"
-                <> short 'v'
-                <> help "Verbose output?"
-            )
-      )
+                ( long "verbose"
+                    <> short 'v'
+                    <> help "Verbose output?"
+                  )
+        )
       empty
   lo <- logOptionsHandle stderr (optionsVerbose options)
   pc <- mkDefaultProcessContext
@@ -53,5 +58,5 @@ main = do
             { appLogFunc = lf,
               appProcessContext = pc,
               appOptions = options
-            }
+              }
      in runRIO app run
