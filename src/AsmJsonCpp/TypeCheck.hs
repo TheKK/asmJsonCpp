@@ -31,7 +31,7 @@ module AsmJsonCpp.TypeCheck
   )
 where
 
-import AsmJsonCpp
+import AsmJsonCpp.Asm
 import AsmJsonCpp.CppExpr
 import RIO
 
