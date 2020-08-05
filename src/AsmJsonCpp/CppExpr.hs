@@ -4,8 +4,8 @@
 module AsmJsonCpp.CppExpr
   ( CppExpr (..),
     cppExprRender,
-    cppAndAll
-    )
+    cppAndAll,
+  )
 where
 
 import qualified Data.Text.Lazy as L

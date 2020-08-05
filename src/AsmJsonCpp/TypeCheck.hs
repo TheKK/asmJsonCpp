@@ -32,8 +32,8 @@ module AsmJsonCpp.TypeCheck
 where
 
 import AsmJsonCpp
-import RIO
 import AsmJsonCpp.CppExpr
+import RIO
 
 -- | Describe what 'CppExpr' should be checked.
 data TypeCheck
