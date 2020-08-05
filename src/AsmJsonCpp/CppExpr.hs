@@ -15,6 +15,7 @@ import RIO.List.Partial
 data CppExpr
   = EVarLiteral L.Text
   | EInfixFn L.Text CppExpr CppExpr
+  | EIndexOperator CppExpr CppExpr
   | EMethodCall CppExpr L.Text ~[CppExpr]
   | EBoolLiteral Bool
   | EStringLiteral L.Text
@@ -26,6 +27,7 @@ data CppExpr
 cppExprRender :: CppExpr -> L.Text
 cppExprRender (EVarLiteral var) = var
 cppExprRender (EInfixFn fn l r) = cppExprRender l <> " " <> fn <> " " <> cppExprRender r
+cppExprRender (EIndexOperator expr i) = cppExprRender expr <> "[" <> cppExprRender i <> "]"
 cppExprRender (EMethodCall expr method args) =
   cppExprRender expr <> "." <> method <> "(" <> argsRender args <> ")"
 cppExprRender (EBoolLiteral True) = "true"
