@@ -35,6 +35,8 @@ cvRef = CppCV True
 data CppType
   = -- | Types like 'int', 'Foo', or 'std::string'.
     CppTypeNormal CppCV L.Text
+  | -- | Generic type
+    CppTypeGeneric CppCV L.Text [CppType]
 
 data CppExpr
   = EVarLiteral L.Text
