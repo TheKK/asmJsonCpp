@@ -34,7 +34,7 @@ cvRef = CppCV True
 -- | Data represent types in C++.
 data CppType
   = -- | Types like 'int', 'Foo', or 'std::string'.
-    CppTypeNormal L.Text
+    CppTypeNormal CppCV L.Text
 
 data CppExpr
   = EVarLiteral L.Text
