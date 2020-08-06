@@ -17,6 +17,7 @@ data CppExpr
   | EInfixFn L.Text CppExpr CppExpr
   | EIndexOperator CppExpr CppExpr
   | EMethodCall CppExpr L.Text ~[CppExpr]
+  | EFunctionCall L.Text ~[CppExpr]
   | EBoolLiteral Bool
   | EStringLiteral L.Text
   | ENumberLiteral Int
@@ -30,6 +31,7 @@ cppExprRender (EInfixFn fn l r) = cppExprRender l <> " " <> fn <> " " <> cppExpr
 cppExprRender (EIndexOperator expr i) = cppExprRender expr <> "[" <> cppExprRender i <> "]"
 cppExprRender (EMethodCall expr method args) =
   cppExprRender expr <> "." <> method <> "(" <> argsRender args <> ")"
+cppExprRender (EFunctionCall fn args) = fn <> "(" <> argsRender args <> ")"
 cppExprRender (EBoolLiteral True) = "true"
 cppExprRender (EBoolLiteral False) = "false"
 cppExprRender (ENumberLiteral n) = L.pack $ show n
