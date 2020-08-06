@@ -12,6 +12,7 @@ module AsmJsonCpp.CppExpr
     cppAndAll,
     CppStmt (..),
     cppStmtRender,
+    CppFn (..),
   )
 where
 
@@ -98,3 +99,7 @@ cppStmtRender (SIf expr bodies) =
 cppStmtRender (SMutAssign lexpr rexpr) =
   cppExprRender lexpr <> " = " <> cppExprRender rexpr <> ";"
 cppStmtRender (SReturn expr) = "return " <> cppExprRender expr <> ";"
+
+type FunctionName = L.Text
+
+data CppFn = CppFn FunctionName [(CppType, L.Text)] CppType [CppStmt]
