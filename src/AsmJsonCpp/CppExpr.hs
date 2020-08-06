@@ -3,6 +3,9 @@
 
 module AsmJsonCpp.CppExpr
   ( CppType (..),
+    CppCV (..),
+    cvNone,
+    cvRef,
     CppExpr (..),
     cppExprRender,
     cppAndAll,
@@ -14,6 +17,19 @@ where
 import qualified Data.Text.Lazy as L
 import RIO
 import RIO.List.Partial
+
+data CppCV = CppCV
+  { _cvRef :: Bool
+  }
+
+instance Semigroup CppCV where
+  (CppCV ref) <> (CppCV ref') = CppCV (ref || ref')
+
+cvNone :: CppCV
+cvNone = CppCV False
+
+cvRef :: CppCV
+cvRef = CppCV True
 
 -- | Data represent types in C++.
 data CppType
