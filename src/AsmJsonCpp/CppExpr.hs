@@ -13,6 +13,7 @@ module AsmJsonCpp.CppExpr
     CppStmt (..),
     cppStmtRender,
     CppFn (..),
+    cppFnRender,
   )
 where
 
@@ -103,3 +104,17 @@ cppStmtRender (SReturn expr) = "return " <> cppExprRender expr <> ";"
 type FunctionName = L.Text
 
 data CppFn = CppFn FunctionName [(CppType, L.Text)] CppType [CppStmt]
+
+cppFnRender :: CppFn -> L.Text
+cppFnRender (CppFn fnName args returnType fnBody) =
+  L.unlines $
+    ["auto " <> fnName <> "(" <> argsText <> ") -> " <> cppTypeRender returnType <> " {"]
+      <> fmap cppStmtRender fnBody
+      <> ["}"]
+  where
+    argsText = fnArgsRender args
+
+fnArgsRender :: [(CppType, L.Text)] -> L.Text
+fnArgsRender = L.intercalate ", " . fmap varDecl
+  where
+    varDecl (cppType, name) = cppTypeRender cppType <> " " <> name
