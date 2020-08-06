@@ -57,6 +57,7 @@ argsRender = L.intercalate ", " . fmap cppExprRender
 
 data CppStmt
   = SIf CppExpr [CppStmt]
+  | SMutAssign CppExpr CppExpr
   | SReturn CppExpr
 
 cppStmtRender :: CppStmt -> L.Text
@@ -65,4 +66,6 @@ cppStmtRender (SIf expr bodies) =
     ["if (" <> cppExprRender expr <> ") {"]
       <> fmap cppStmtRender bodies
       <> ["}"]
+cppStmtRender (SMutAssign lexpr rexpr) =
+  cppExprRender lexpr <> " = " <> cppExprRender rexpr <> ";"
 cppStmtRender (SReturn expr) = "return " <> cppExprRender expr <> ";"
