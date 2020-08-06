@@ -5,6 +5,8 @@ module AsmJsonCpp.CppExpr
   ( CppExpr (..),
     cppExprRender,
     cppAndAll,
+    CppStmt (..),
+    cppStmtRender,
   )
 where
 
@@ -46,3 +48,15 @@ cppAndAll cs
 
 argsRender :: [CppExpr] -> L.Text
 argsRender = L.intercalate ", " . fmap cppExprRender
+
+data CppStmt
+  = SIf CppExpr [CppStmt]
+  | SReturn CppExpr
+
+cppStmtRender :: CppStmt -> L.Text
+cppStmtRender (SIf expr bodies) =
+  L.unlines $
+    ["if (" <> cppExprRender expr <> ") {"]
+      <> fmap cppStmtRender bodies
+      <> ["}"]
+cppStmtRender (SReturn expr) = "return " <> cppExprRender expr <> ";"
