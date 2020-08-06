@@ -3,6 +3,7 @@
 
 module AsmJsonCpp.CppExpr
   ( CppType (..),
+    cppTypeRender,
     CppCV (..),
     cvNone,
     cvRef,
@@ -37,6 +38,16 @@ data CppType
     CppTypeNormal CppCV L.Text
   | -- | Generic type
     CppTypeGeneric CppCV L.Text [CppType]
+
+cppTypeRender :: CppType -> L.Text
+cppTypeRender (CppTypeNormal cv ty) = ty <> cppCVRender cv
+cppTypeRender (CppTypeGeneric cv ty args) = ty <> "<" <> args' <> ">" <> cppCVRender cv
+  where
+    args' = L.intercalate ", " $ fmap cppTypeRender args
+
+cppCVRender :: CppCV -> L.Text
+cppCVRender (CppCV True) = "&"
+cppCVRender (CppCV False) = ""
 
 data CppExpr
   = EVarLiteral L.Text
