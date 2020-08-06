@@ -2,7 +2,8 @@
 {-# LANGUAGE StrictData #-}
 
 module AsmJsonCpp.CppExpr
-  ( CppExpr (..),
+  ( CppType (..),
+    CppExpr (..),
     cppExprRender,
     cppAndAll,
     CppStmt (..),
@@ -13,6 +14,11 @@ where
 import qualified Data.Text.Lazy as L
 import RIO
 import RIO.List.Partial
+
+-- | Data represent types in C++.
+data CppType
+  = -- | Types like 'int', 'Foo', or 'std::string'.
+    CppTypeNormal L.Text
 
 data CppExpr
   = EVarLiteral L.Text
