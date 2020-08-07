@@ -61,7 +61,7 @@ data CppExpr
   | EStringLiteral L.Text
   | ENumberLiteral Int
   | -- | Render anything for you.
-    EWorkaround L.Text
+    EWorkaround [L.Text]
   deriving (Show)
 
 cppExprRender :: CppExpr -> L.Text
@@ -75,7 +75,7 @@ cppExprRender (EBoolLiteral True) = "true"
 cppExprRender (EBoolLiteral False) = "false"
 cppExprRender (ENumberLiteral n) = L.pack $ show n
 cppExprRender (EStringLiteral s) = "\"" <> s <> "\""
-cppExprRender (EWorkaround s) = s
+cppExprRender (EWorkaround s) = L.unlines s
 
 -- | Convert [exprA, exprB, exprC] into "exprA && exprB && exprC"
 cppAndAll :: Foldable t => t CppExpr -> CppExpr

@@ -63,13 +63,14 @@ compileTypeCheck (ShouldNthBeChecked nth expr checks) =
     nthExpr = EMethodCall expr "at" [ENumberLiteral nth]
 compileTypeCheck (ShouldBeAllChecked expr checks) =
   -- TODO EWorkaround should be removed in the future.
-  EWorkaround $
-    "[&]{"
-      -- TODO Variable should change for nested case. Even though shadowing is allowed.
-      <> (" for (const auto& x : " <> cppExprRender expr <> ") { ")
-      <> ("if (!(" <> (cppExprRender . compileTypeChecks $ checks') <> ")) { return false; }")
-      <> "} "
-      <> "return true; }()"
+  EWorkaround
+    [ "[&]{"
+        -- TODO Variable should change for nested case. Even though shadowing is allowed.
+        <> (" for (const auto& x : " <> cppExprRender expr <> ") { ")
+        <> ("if (!(" <> (cppExprRender . compileTypeChecks $ checks') <> ")) { return false; }")
+        <> "} "
+        <> "return true; }()"
+    ]
   where
     checks' = ($ EVarLiteral "x") =<< checks
 
