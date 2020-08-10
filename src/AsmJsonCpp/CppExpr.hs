@@ -40,12 +40,15 @@ data CppType
     CppTypeNormal CppCV L.Text
   | -- | Generic type
     CppTypeGeneric CppCV L.Text [CppType]
+  | -- | Custom struct type with fields
+    CppTypeStruct CppCV L.Text [(L.Text, CppType)]
 
 cppTypeRender :: CppType -> L.Text
 cppTypeRender (CppTypeNormal cv ty) = ty <> cppCVRender cv
 cppTypeRender (CppTypeGeneric cv ty args) = ty <> "<" <> args' <> ">" <> cppCVRender cv
   where
     args' = L.intercalate ", " $ fmap cppTypeRender args
+cppTypeRender (CppTypeStruct cv name _fields) = name <> cppCVRender cv
 
 cppCVRender :: CppCV -> L.Text
 cppCVRender (CppCV True) = "&"
