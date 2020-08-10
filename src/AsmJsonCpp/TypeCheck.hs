@@ -94,3 +94,4 @@ typeCheckObj (AtField f as) expr = checkIsMember : typeCheck as atExpr
   where
     checkIsMember = ShouldBeMember expr $ EStringLiteral f
     atExpr = EMethodCall expr "at" [EStringLiteral f]
+typeCheckObj (AtFields fs) expr = (flip typeCheckObj expr . uncurry AtField) =<< fs

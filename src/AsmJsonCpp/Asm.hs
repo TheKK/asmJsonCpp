@@ -12,6 +12,8 @@ import RIO
 
 data AsmObj
   = AtField L.Text AsmJson
+  | -- | This constructs product type.
+    AtFields [(L.Text, AsmJson)]
   deriving (Show)
 
 data AsmArray
