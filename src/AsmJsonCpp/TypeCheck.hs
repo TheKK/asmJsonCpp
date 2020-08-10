@@ -60,7 +60,7 @@ compileTypeCheck (ShouldNthBeChecked nth expr checks) =
   where
     nthExistsExpr = EMethodCall expr "isValidIndex" [ENumberLiteral nth]
     checks' = ($ nthExpr) =<< checks
-    nthExpr = EMethodCall expr "at" [ENumberLiteral nth]
+    nthExpr = EIndexOperator expr (ENumberLiteral nth)
 compileTypeCheck (ShouldBeAllChecked expr checks) =
   -- TODO EWorkaround should be removed in the future.
   EWorkaround
