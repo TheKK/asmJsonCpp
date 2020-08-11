@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e47ddb99374c804c24001f0ad6534dba2108be7d3082d53c691ec457ad221342
+-- hash: 6559f2d27d1a05010b769134803dff6345206a2602dcb0c8979d633bfd5d7c13
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       AsmJsonCpp
       AsmJsonCpp.Asm
+      AsmJsonCpp.Compiler
       AsmJsonCpp.CppExpr
       AsmJsonCpp.TypeCheck
   other-modules:
