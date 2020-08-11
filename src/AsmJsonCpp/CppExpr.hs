@@ -24,6 +24,7 @@ import RIO.List.Partial
 data CppCV = CppCV
   { _cvRef :: Bool
   }
+  deriving (Show)
 
 instance Semigroup CppCV where
   (CppCV ref) <> (CppCV ref') = CppCV (ref || ref')
@@ -42,6 +43,7 @@ data CppType
     CppTypeGeneric CppCV L.Text [CppType]
   | -- | Custom struct type with fields
     CppTypeStruct CppCV L.Text [(L.Text, CppType)]
+  deriving (Show)
 
 cppTypeRender :: CppType -> L.Text
 cppTypeRender (CppTypeNormal cv ty) = ty <> cppCVRender cv
