@@ -63,6 +63,7 @@ data CppExpr
   | EBoolLiteral Bool
   | EStringLiteral L.Text
   | ENumberLiteral Int
+  | EParentheses CppExpr
   | -- | Render anything for you.
     EWorkaround [L.Text]
   deriving (Show)
@@ -77,6 +78,7 @@ cppExprRender (EFunctionCall fn args) = fn <> "(" <> argsRender args <> ")"
 cppExprRender (EBoolLiteral True) = "true"
 cppExprRender (EBoolLiteral False) = "false"
 cppExprRender (ENumberLiteral n) = L.pack $ show n
+cppExprRender (EParentheses expr) = "(" <> cppExprRender expr <> ")"
 cppExprRender (EStringLiteral s) = "\"" <> s <> "\""
 cppExprRender (EWorkaround s) = L.unlines s
 
