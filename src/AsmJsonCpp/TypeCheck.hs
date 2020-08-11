@@ -44,6 +44,8 @@ data TypeCheck
   | ShouldBeArr CppExpr
   | ShouldBeAllChecked CppExpr [CppExpr -> [TypeCheck]]
   | ShouldNthBeChecked Int CppExpr [CppExpr -> [TypeCheck]]
+  | -- Group all 'TypeCheck's into one
+    ShouldAllBeChecked [TypeCheck]
 
 compileTypeChecks :: [TypeCheck] -> CppExpr
 compileTypeChecks [] = EBoolLiteral True
@@ -55,6 +57,7 @@ compileTypeCheck (ShouldBeString expr) = EMethodCall expr "isString" []
 compileTypeCheck (ShouldBeObj expr) = EMethodCall expr "isObject" []
 compileTypeCheck (ShouldBeArr expr) = EMethodCall expr "isArray" []
 compileTypeCheck (ShouldBeMember expr fieldExpr) = EMethodCall expr "isMember" [fieldExpr]
+compileTypeCheck (ShouldAllBeChecked cs) = EParentheses $ compileTypeChecks cs
 compileTypeCheck (ShouldNthBeChecked nth expr checks) =
   cppAndAll $ nthExistsExpr : fmap compileTypeCheck checks'
   where
