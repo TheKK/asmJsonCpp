@@ -66,6 +66,7 @@ compileTypeCheck (ShouldNthBeChecked nth expr checks) =
     nthExpr = EIndexOperator expr (ENumberLiteral nth)
 compileTypeCheck (ShouldBeAllChecked expr checks) =
   -- TODO EWorkaround should be removed in the future.
+  -- TODO Use 'all_of' to do this
   EWorkaround
     [ "[&]{"
         -- TODO Variable should change for nested case. Even though shadowing is allowed.
