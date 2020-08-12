@@ -21,6 +21,7 @@ where
 import qualified Data.Text.Lazy as L
 import RIO
 import RIO.List.Partial
+import RIO.List
 
 data CppCV = CppCV
   { _cvRef :: Bool
@@ -138,7 +139,7 @@ cppFnRender :: CppFn -> L.Text
 cppFnRender (CppFn fnName args returnType fnBody) =
   L.unlines $
     ["auto " <> fnName <> "(" <> argsText <> ") -> " <> cppTypeRender returnType <> " {"]
-      <> (cppStmtRender . SIndent $ fnBody)
+      <> (cppStmtRender . SIndent . intersperse SBlankLine $ fnBody)
       <> ["}"]
   where
     argsText = fnArgsRender args
