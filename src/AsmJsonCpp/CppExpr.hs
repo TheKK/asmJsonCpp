@@ -87,6 +87,10 @@ data CppExpr
     EWorkaround [L.Text]
   deriving (Show)
 
+cppExprRenderMulti :: CppExpr -> [L.Text]
+cppExprRenderMulti (EWorkaround s) = s
+cppExprRenderMulti expr@_ = pure $ cppExprRender expr
+
 cppExprRender :: CppExpr -> L.Text
 cppExprRender (EVarLiteral var) = var
 cppExprRender (EInfixFn fn l r) = cppExprRender l <> " " <> fn <> " " <> cppExprRender r
