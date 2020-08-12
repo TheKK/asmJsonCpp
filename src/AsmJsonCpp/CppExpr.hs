@@ -98,7 +98,7 @@ cppExprRender (EBoolLiteral False) = "false"
 cppExprRender (ENumberLiteral n) = L.pack $ show n
 cppExprRender (EParentheses expr) = "(" <> cppExprRender expr <> ")"
 cppExprRender (EStringLiteral s) = "\"" <> s <> "\""
-cppExprRender (EWorkaround s) = L.unlines s
+cppExprRender (EWorkaround s) = L.init $ L.unlines s -- Trim the last new line
 
 -- | Convert [exprA, exprB, exprC] into "exprA && exprB && exprC"
 cppAndAll :: Foldable t => t CppExpr -> CppExpr
