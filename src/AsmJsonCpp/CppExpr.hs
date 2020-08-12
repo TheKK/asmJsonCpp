@@ -113,16 +113,20 @@ data CppStmt
   = SIf CppExpr [CppStmt]
   | SMutAssign CppExpr CppExpr
   | SReturn CppExpr
+  | SIndent [CppStmt]
 
-cppStmtRender :: CppStmt -> L.Text
+cppStmtRender :: CppStmt -> [L.Text]
 cppStmtRender (SIf expr bodies) =
-  L.unlines $
-    ["if (" <> cppExprRender expr <> ") {"]
-      <> fmap cppStmtRender bodies
-      <> ["}"]
+  ["if (" <> cppExprRender expr <> ") {"]
+    <> (cppStmtRender . SIndent) bodies
+    <> ["}"]
 cppStmtRender (SMutAssign lexpr rexpr) =
-  cppExprRender lexpr <> " = " <> cppExprRender rexpr <> ";"
-cppStmtRender (SReturn expr) = "return " <> cppExprRender expr <> ";"
+  [ cppExprRender lexpr <> " = " <> cppExprRender rexpr <> ";"
+  ]
+cppStmtRender (SReturn expr) =
+  [ "return " <> cppExprRender expr <> ";"
+  ]
+cppStmtRender (SIndent stmts) = fmap ("  " <>) $ cppStmtRender =<< stmts
 
 type FunctionName = L.Text
 
@@ -132,7 +136,7 @@ cppFnRender :: CppFn -> L.Text
 cppFnRender (CppFn fnName args returnType fnBody) =
   L.unlines $
     ["auto " <> fnName <> "(" <> argsText <> ") -> " <> cppTypeRender returnType <> " {"]
-      <> fmap cppStmtRender fnBody
+      <> (cppStmtRender =<< fnBody)
       <> ["}"]
   where
     argsText = fnArgsRender args
