@@ -127,8 +127,13 @@ cppStmtRender (SIf expr bodies) =
     <> (cppStmtRender . SIndent) bodies
     <> ["}"]
 cppStmtRender (SMutAssign lexpr rexpr) =
-  [ cppExprRender lexpr <> " = " <> cppExprRender rexpr <> ";"
-  ]
+  [cppExprRender lexpr <> " = " <> rexprFirstLine]
+    <> fmap ("  " <>) rexprRestLines
+    <> [";"]
+  where
+    rexprRestLines = drop 1 $ rexprLines
+    rexprFirstLine = L.unwords . take 1 $ rexprLines
+    rexprLines = cppExprRenderMulti rexpr
 cppStmtRender (SReturn expr) =
   [ "return " <> cppExprRender expr <> ";"
   ]
