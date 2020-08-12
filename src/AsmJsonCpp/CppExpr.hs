@@ -114,6 +114,7 @@ data CppStmt
   | SMutAssign CppExpr CppExpr
   | SReturn CppExpr
   | SIndent [CppStmt]
+  | SBlankLine
 
 cppStmtRender :: CppStmt -> [L.Text]
 cppStmtRender (SIf expr bodies) =
@@ -127,6 +128,7 @@ cppStmtRender (SReturn expr) =
   [ "return " <> cppExprRender expr <> ";"
   ]
 cppStmtRender (SIndent stmts) = fmap ("  " <>) $ cppStmtRender =<< stmts
+cppStmtRender (SBlankLine) = [""]
 
 type FunctionName = L.Text
 
