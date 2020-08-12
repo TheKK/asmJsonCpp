@@ -136,7 +136,7 @@ cppFnRender :: CppFn -> L.Text
 cppFnRender (CppFn fnName args returnType fnBody) =
   L.unlines $
     ["auto " <> fnName <> "(" <> argsText <> ") -> " <> cppTypeRender returnType <> " {"]
-      <> (cppStmtRender =<< fnBody)
+      <> (cppStmtRender . SIndent $ fnBody)
       <> ["}"]
   where
     argsText = fnArgsRender args
