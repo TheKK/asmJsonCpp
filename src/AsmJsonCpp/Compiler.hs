@@ -8,7 +8,6 @@ module AsmJsonCpp.Compiler
     compileToResultType,
     compileToJSONTypeCheck,
     compileToJSONGetter,
-    dbg',
   )
 where
 
