@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0e8795819f4afbe89d881edea31ac49b4a90ef20548e4058bdb5f2f9766a830c
+-- hash: 8deb87b876da4c6fefbc4fe082b68f58d559eabf015601f0f648e4fd75e71e0f
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -44,6 +44,7 @@ library
     , parser-combinators
     , rio >=0.1.12.0
     , text
+    , transformers
   default-language: Haskell2010
 
 executable asmJsonCpp-exe
@@ -61,6 +62,7 @@ executable asmJsonCpp-exe
     , parser-combinators
     , rio >=0.1.12.0
     , text
+    , transformers
   default-language: Haskell2010
 
 test-suite asmJsonCpp-test
@@ -79,4 +81,5 @@ test-suite asmJsonCpp-test
     , parser-combinators
     , rio >=0.1.12.0
     , text
+    , transformers
   default-language: Haskell2010
