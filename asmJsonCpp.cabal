@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6559f2d27d1a05010b769134803dff6345206a2602dcb0c8979d633bfd5d7c13
+-- hash: 0e8795819f4afbe89d881edea31ac49b4a90ef20548e4058bdb5f2f9766a830c
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       AsmJsonCpp.Asm
       AsmJsonCpp.Compiler
       AsmJsonCpp.CppExpr
+      AsmJsonCpp.Parser
       AsmJsonCpp.TypeCheck
   other-modules:
       Paths_asmJsonCpp
@@ -39,6 +40,8 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -XNoImplicitPrelude
   build-depends:
       base >=4.11 && <10
+    , megaparsec
+    , parser-combinators
     , rio >=0.1.12.0
     , text
   default-language: Haskell2010
@@ -53,7 +56,9 @@ executable asmJsonCpp-exe
   build-depends:
       asmJsonCpp
     , base >=4.11 && <10
+    , megaparsec
     , optparse-simple
+    , parser-combinators
     , rio >=0.1.12.0
     , text
   default-language: Haskell2010
@@ -70,6 +75,8 @@ test-suite asmJsonCpp-test
       asmJsonCpp
     , base >=4.11 && <10
     , hspec
+    , megaparsec
+    , parser-combinators
     , rio >=0.1.12.0
     , text
   default-language: Haskell2010
