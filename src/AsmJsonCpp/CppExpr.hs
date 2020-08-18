@@ -20,8 +20,8 @@ where
 
 import qualified Data.Text.Lazy as L
 import RIO
-import RIO.List.Partial
 import RIO.List
+import RIO.List.Partial
 
 data CppCV = CppCV
   { _cvRef :: Bool
