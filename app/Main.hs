@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -6,10 +7,20 @@ module Main
   )
 where
 
+import AsmJsonCpp.Compiler
+import AsmJsonCpp.CppExpr
+import AsmJsonCpp.Parser
+import Control.Monad.Trans.Except
+import qualified Data.Text.IO as T
+import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.IO as L
 import Options.Applicative.Simple
 import qualified Paths_asmJsonCpp
 import RIO
 import RIO.Process
+import RIO.Writer
+import System.IO (putStrLn)
+import Text.Megaparsec.Error
 
 -- | Command line arguments
 data Options = Options
@@ -29,13 +40,49 @@ instance HasLogFunc App where
 instance HasProcessContext App where
   processContextL = lens appProcessContext (\x y -> x {appProcessContext = y})
 
-run :: RIO App ()
-run = do
-  logInfo "We're inside the application!"
+runAsmJsonCommand :: L.Text -> IO ()
+runAsmJsonCommand input = do
+  case parseAsmJson input of
+    Left err -> putStrLn . errorBundlePretty $ err
+    Right asm -> do
+      tryPrintingResultTypeDefinition asm
+      printFunctionBody asm
+  where
+    tryPrintingResultTypeDefinition asm =
+      case (cppTypeRenderDefinition $ compileToResultType asm cvNone) of
+        Just def -> L.putStrLn def
+        Nothing -> do
+          L.putStrLn . L.unlines $
+            [ "// Wow, primitive types rocks right?",
+              "// Let's use them everywhere and get confused.",
+              "// It's string! It's user name! It's email address as well!! What a lovely day."
+            ]
+    printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC"
+
+subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
+subCommands = do
+  cppSubCmd
+  where
+    cppSubCmd =
+      addCommand "cpp" "generate cpp source code to validate & parse JSON value" cppRun $
+        optional $
+          strArgument
+            ( metavar "QUERY"
+                <> help "query string for JSON parsing, if not present then read from stdin"
+            )
+
+    cppRun :: Maybe String -> RIO App ()
+    cppRun input = liftIO $ do
+      input' <-
+        fromMaybe
+          (L.fromStrict <$> T.getContents)
+          (return . L.pack <$> input)
+
+      runAsmJsonCommand input'
 
 main :: IO ()
 main = do
-  (options, ()) <-
+  (options, runSubCommand) <-
     simpleOptions
       $(simpleVersion Paths_asmJsonCpp.version)
       "Header for command line arguments"
@@ -47,7 +94,7 @@ main = do
                 <> help "Verbose output?"
             )
       )
-      empty
+      subCommands
   lo <- logOptionsHandle stderr (optionsVerbose options)
   pc <- mkDefaultProcessContext
   withLogFunc lo $ \lf ->
@@ -57,4 +104,4 @@ main = do
               appProcessContext = pc,
               appOptions = options
             }
-     in runRIO app run
+     in runRIO app runSubCommand
