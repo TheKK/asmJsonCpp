@@ -63,15 +63,15 @@ prependDiscoveredType t = do
   s@(TypeComputeState _ ts) <- get
   put $ s {discoveredTypes = t : ts}
 
-compileToResultType' :: AsmJson -> CppCV -> State [String] CppType
+compileToResultType' :: AsmJson -> CppCV -> State TypeComputeState CppType
 compileToResultType' AsInt cv = return $ CppTypeNormal cv "int"
 compileToResultType' AsString cv = return $ CppTypeNormal cv "std::string"
 compileToResultType' (AsObj (AtField _ asm)) cv = compileToResultType' asm cv
 compileToResultType' (AsObj (AtFields fields)) cv = do
-  ctx <- get
-  let c = fromMaybe "OOPS_THIS_IS_A_BUG" . listToMaybe $ ctx
-  put $ drop 1 ctx
-  CppTypeStruct cv (fromString c) <$> typeOfFields
+  c <- extractName
+  objType <- CppTypeStruct cv c <$> typeOfFields
+  prependDiscoveredType objType
+  return objType
   where
     typeOfFields = mapM (bitraverse pure (\asm -> compileToResultType' asm cvNone)) fields
 compileToResultType' (AsArray (AtNth _ asm)) cv = compileToResultType' asm cv
