@@ -9,7 +9,7 @@ module AsmJsonCpp.Parser
 where
 
 import AsmJsonCpp.Asm
-import Control.Applicative.Combinators hiding (many, some)
+import Control.Applicative.Combinators hiding (many, skipManyTill, some)
 import qualified Data.Text.Lazy as L
 import RIO hiding (many, some, try)
 import Text.Megaparsec
@@ -19,7 +19,7 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 type Parser a = Parsec Void L.Text a
 
 parseAsmJson :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
-parseAsmJson = parse asmJson "INPUT"
+parseAsmJson = parse (space `skipManyTill` asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
