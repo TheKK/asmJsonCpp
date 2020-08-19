@@ -38,7 +38,7 @@ compileToCppFn fnName asm =
     outName = "out"
 
 compileToResultType :: AsmJson -> CppCV -> CppType
-compileToResultType asm cv = evalState (compileToResultType' asm cv) infiniteUpperNames
+compileToResultType asm cv = evalState (compileToResultType' asm cv) defTypeComputeState
 
 data TypeComputeState = TypeComputeState
   { typeNames :: [L.Text],
@@ -46,8 +46,22 @@ data TypeComputeState = TypeComputeState
   }
   deriving (Show)
 
+defTypeComputeState :: TypeComputeState
+defTypeComputeState = TypeComputeState infiniteUpperNames []
   where
-    infiniteUpperNames = flip replicateM ['T' .. 'Z'] =<< [1 ..]
+    infiniteUpperNames = fmap fromString $ flip replicateM ['T' .. 'Z'] =<< [1 ..]
+
+extractName :: State TypeComputeState L.Text
+extractName = do
+  s@(TypeComputeState names _) <- get
+  let c = fromMaybe "OOPS_THIS_IS_A_BUG" . listToMaybe $ names
+  put $ s {typeNames = drop 1 names}
+  return c
+
+prependDiscoveredType :: CppType -> State TypeComputeState ()
+prependDiscoveredType t = do
+  s@(TypeComputeState _ ts) <- get
+  put $ s {discoveredTypes = t : ts}
 
 compileToResultType' :: AsmJson -> CppCV -> State [String] CppType
 compileToResultType' AsInt cv = return $ CppTypeNormal cv "int"
