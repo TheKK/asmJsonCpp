@@ -14,9 +14,11 @@ where
 import AsmJsonCpp.Asm
 import AsmJsonCpp.CppExpr
 import AsmJsonCpp.TypeCheck
+import Control.Monad (replicateM)
 import qualified Data.Text.Lazy as L
 import Data.Text.Lazy.IO
 import RIO
+import RIO.State
 
 compileToCppFn :: L.Text -> AsmJson -> CppFn
 compileToCppFn fnName asm =
@@ -37,15 +39,25 @@ compileToCppFn fnName asm =
     outName = "out"
 
 compileToResultType :: AsmJson -> CppCV -> CppType
-compileToResultType AsInt cv = CppTypeNormal cv "int"
-compileToResultType AsString cv = CppTypeNormal cv "std::string"
-compileToResultType (AsObj (AtField _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsObj (AtFields fields)) cv = CppTypeStruct cv "T" typeOfFields
+compileToResultType asm cv = evalState (compileToResultType' asm cv) infiniteUpperNames
   where
-    typeOfFields = (fmap . second $ \asm -> compileToResultType asm cvNone) fields
-compileToResultType (AsArray (AtNth _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsArray (EachElement asm)) cv =
-  CppTypeGeneric cv "std::vector" [compileToResultType asm cvNone]
+    infiniteUpperNames = flip replicateM ['T' .. 'Z'] =<< [1 ..]
+
+compileToResultType' :: AsmJson -> CppCV -> State [String] CppType
+compileToResultType' AsInt cv = return $ CppTypeNormal cv "int"
+compileToResultType' AsString cv = return $ CppTypeNormal cv "std::string"
+compileToResultType' (AsObj (AtField _ asm)) cv = compileToResultType' asm cv
+compileToResultType' (AsObj (AtFields fields)) cv = do
+  ctx <- get
+  let c = fromMaybe "OOPS_THIS_IS_A_BUG" . listToMaybe $ ctx
+  put $ drop 1 ctx
+  CppTypeStruct cv (fromString c) <$> typeOfFields
+  where
+    typeOfFields = mapM (bitraverse pure (\asm -> compileToResultType' asm cvNone)) fields
+compileToResultType' (AsArray (AtNth _ asm)) cv = compileToResultType' asm cv
+compileToResultType' (AsArray (EachElement asm)) cv = do
+  t <- compileToResultType' asm cvNone
+  return $ CppTypeGeneric cv "std::vector" [t]
 
 compileToJSONTypeCheck :: AsmJson -> CppExpr -> CppStmt
 compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
