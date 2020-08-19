@@ -16,7 +16,6 @@ import AsmJsonCpp.CppExpr
 import AsmJsonCpp.TypeCheck
 import Control.Monad (replicateM)
 import qualified Data.Text.Lazy as L
-import Data.Text.Lazy.IO
 import RIO
 import RIO.State
 
