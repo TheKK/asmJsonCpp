@@ -39,6 +39,13 @@ compileToCppFn fnName asm =
 
 compileToResultType :: AsmJson -> CppCV -> CppType
 compileToResultType asm cv = evalState (compileToResultType' asm cv) infiniteUpperNames
+
+data TypeComputeState = TypeComputeState
+  { typeNames :: [L.Text],
+    discoveredTypes :: [CppType]
+  }
+  deriving (Show)
+
   where
     infiniteUpperNames = flip replicateM ['T' .. 'Z'] =<< [1 ..]
 
