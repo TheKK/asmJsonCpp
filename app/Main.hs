@@ -72,7 +72,7 @@ printGeneratedCppSourceCode asm = do
 
     resultTypes = toList $ compileToResultTypes asm cvNone
 
-    printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC" $ asm
+    printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "from_json" $ asm
 
 subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
 subCommands = do
