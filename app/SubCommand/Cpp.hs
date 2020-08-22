@@ -19,12 +19,6 @@ import RIO.Writer
 import System.IO (putStrLn)
 import Text.Megaparsec.Error
 
-runAsmJsonCommand :: L.Text -> IO ()
-runAsmJsonCommand input = do
-  case parseAsmJson input of
-    Left err -> putStrLn . errorBundlePretty $ err
-    Right asm -> printGeneratedCppSourceCode asm
-
 printGeneratedCppSourceCode :: AsmJson -> IO ()
 printGeneratedCppSourceCode asm = do
   tryPrintingResultTypeDeclaration
@@ -68,4 +62,6 @@ cppRun input = liftIO $ do
       (L.fromStrict <$> T.getContents)
       (return . L.pack <$> input)
 
-  runAsmJsonCommand input'
+  case parseAsmJson input' of
+    Left err -> putStrLn . errorBundlePretty $ err
+    Right asm -> printGeneratedCppSourceCode asm
