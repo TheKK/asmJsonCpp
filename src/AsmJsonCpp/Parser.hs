@@ -24,9 +24,9 @@ parseAsmJson = parse (space *> asmJson <* eof) "INPUT"
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
   where
-    asInt = AsInt <$ lastKeyword "AsInt"
+    asInt = AsInt <$ symbol "AsInt"
 
-    asString = AsString <$ lastKeyword "AsString"
+    asString = AsString <$ symbol "AsString"
 
     asObj =
       AsObj <$ keyword "AsObj"
@@ -89,10 +89,6 @@ space =
 
 keyword :: L.Text -> Parser L.Text
 keyword t = lexeme . try $ C.string t <* lookAhead C.space1
-
--- | Like 'token', but don't require trailing space.
-lastKeyword :: L.Text -> Parser ()
-lastKeyword t = void $ C.string t
 
 symbol :: L.Text -> Parser L.Text
 symbol t = Lex.symbol space t
