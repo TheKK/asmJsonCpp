@@ -13,13 +13,13 @@ import Control.Applicative.Combinators hiding (many, skipManyTill, some)
 import qualified Data.Text.Lazy as L
 import RIO hiding (many, some, try)
 import Text.Megaparsec
-import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Char.Lexer as Lex
 
 type Parser a = Parsec Void L.Text a
 
 parseAsmJson :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
-parseAsmJson = parse (space *> asmJson <* eof) "INPUT"
+parseAsmJson = parse (C.space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
@@ -58,7 +58,7 @@ structName :: Parser L.Text
 structName = identifier
 
 identifier :: Parser L.Text
-identifier = lexeme (fromString <$> (some $ alphaNumChar <|> satisfy (== '_')))
+identifier = lexeme (fromString <$> (some $ C.alphaNumChar <|> satisfy (== '_')))
 
 nth :: Parser Int
 nth = lexeme Lex.decimal
@@ -78,14 +78,14 @@ field = between (symbol "(") (symbol ")") $ do
   return (name, asm)
 
 lexeme :: Parser a -> Parser a
-lexeme = Lex.lexeme space
+lexeme = Lex.lexeme C.space
 
 keyword :: L.Text -> Parser L.Text
-keyword t = lexeme . try $ string t <* lookAhead space1
+keyword t = lexeme . try $ C.string t <* lookAhead C.space1
 
 -- | Like 'token', but don't require trailing space.
 lastKeyword :: L.Text -> Parser ()
-lastKeyword t = void $ string t
+lastKeyword t = void $ C.string t
 
 symbol :: L.Text -> Parser L.Text
-symbol t = Lex.symbol space t
+symbol t = Lex.symbol C.space t
