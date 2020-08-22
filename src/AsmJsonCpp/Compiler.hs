@@ -86,41 +86,34 @@ compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
     notExpr e = EFunctionCall "!" [e]
 
 compileToJSONGetter :: AsmJson -> CppExpr -> CppExpr
-compileToJSONGetter asm expr = evalState (compileToJSONGetter' asm expr) defTypeComputeState
-
-compileToJSONGetter' :: AsmJson -> CppExpr -> State TypeComputeState CppExpr
-compileToJSONGetter' AsInt expr = return $ EMethodCall expr "asInt" []
-compileToJSONGetter' AsString expr = return $ EMethodCall expr "asString" []
-compileToJSONGetter' (AsObj (AtField f asm)) expr =
+compileToJSONGetter AsInt expr = EMethodCall expr "asInt" []
+compileToJSONGetter AsString expr = EMethodCall expr "asString" []
+compileToJSONGetter (AsObj (AtField f asm)) expr =
   EIndexOperator expr (EStringLiteral f)
-    & compileToJSONGetter' asm
-compileToJSONGetter' (AsObj (AtFields fs)) expr = do
-  fsSxprs <- for fs compile
-  return $
-    EWorkaround $
-      ["{"]
-        <> fmap foo fsSxprs
-        <> ["}"]
+    & compileToJSONGetter asm
+compileToJSONGetter (AsObj (AtFields fs)) expr =
+  EWorkaround $
+    ["{"]
+      <> foo
+      <> ["}"]
   where
-    foo :: CppExpr -> L.Text
-    foo = (<> ",") . cppExprRender
+    foo :: [L.Text]
+    foo = fmap ((<> ",") . cppExprRender . compile) $ fs
 
-    compile (f, asm) = EIndexOperator expr (EStringLiteral f) & compileToJSONGetter' asm
-compileToJSONGetter' (AsArray (EachElement asm)) expr = do
-  vGetter <- vGetterS
-  return $
-    EWorkaround
-      [ "[&] {",
-        "  auto ret = std::vector<" <> retTypeText <> ">{};",
-        "  for (const auto& v : " <> expr' <> ") {",
-        "    ret.emplace_back(" <> vGetter <> ");",
-        "  }",
-        "  return ret;",
-        "}()"
-      ]
+    compile (f, asm) = EIndexOperator expr (EStringLiteral f) & compileToJSONGetter asm
+compileToJSONGetter (AsArray (EachElement asm)) expr =
+  EWorkaround
+    [ "[&] {",
+      "  auto ret = std::vector<" <> retTypeText <> ">{};",
+      "  for (const auto& v : " <> expr' <> ") {",
+      "    ret.emplace_back(" <> vGetter <> ");",
+      "  }",
+      "  return ret;",
+      "}()"
+    ]
   where
     retTypeText = cppTypeRender $ compileToResultType asm cvNone
     expr' = cppExprRender expr
-    vGetterS = cppExprRender <$> compileToJSONGetter' asm (EVarLiteral "v")
-compileToJSONGetter' (AsArray (AtNth n asm)) expr =
-  compileToJSONGetter' asm $ EIndexOperator expr (ENumberLiteral n)
+    vGetter = cppExprRender $ compileToJSONGetter asm $ EVarLiteral "v"
+compileToJSONGetter (AsArray (AtNth n asm)) expr =
+  compileToJSONGetter asm $ EIndexOperator expr (ENumberLiteral n)
