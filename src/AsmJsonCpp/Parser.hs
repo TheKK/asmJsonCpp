@@ -64,9 +64,7 @@ nth = lexeme Lex.decimal
 
 array :: Parser a -> Parser [a]
 array p = between (symbol "[") (symbol "]") $ do
-  ps <- many (try $ p <* symbol ",")
-  lastP <- optional p
-  return $ ps <> maybeToList lastP
+  p `sepEndBy` symbol ","
 
 field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
