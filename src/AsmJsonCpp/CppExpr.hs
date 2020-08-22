@@ -4,6 +4,7 @@
 module AsmJsonCpp.CppExpr
   ( CppType (..),
     cppTypeRender,
+    cppTypeRenderForwardDeclaration,
     cppTypeRenderDefinition,
     CppCV (..),
     cvNone,
@@ -55,6 +56,12 @@ cppTypeRender (CppTypeGeneric cv ty args) = ty <> "<" <> args' <> ">" <> cppCVRe
   where
     args' = L.intercalate ", " $ fmap cppTypeRender args
 cppTypeRender (CppTypeStruct cv name _fields) = name <> cppCVRender cv
+
+-- | This function only render 'CppTypeStruct' since other type should be
+--  pre-defined.
+cppTypeRenderForwardDeclaration :: CppType -> Maybe L.Text
+cppTypeRenderForwardDeclaration (CppTypeStruct _cv name _fields) = Just $ "struct " <> name <> ";"
+cppTypeRenderForwardDeclaration _ = Nothing
 
 -- | This function only render 'CppTypeStruct' since other type should be
 --  pre-defined.
