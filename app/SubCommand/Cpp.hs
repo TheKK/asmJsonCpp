@@ -19,6 +19,8 @@ import RIO.Writer
 import System.IO (putStrLn)
 import Text.Megaparsec.Error
 
+type Args = Maybe String
+
 printGeneratedCppSourceCode :: AsmJson -> IO ()
 printGeneratedCppSourceCode asm = do
   tryPrintingResultTypeDeclaration
@@ -54,7 +56,7 @@ cppSubCmd =
     cppRun
     cppParse
 
-cppParse :: Parser (Maybe String)
+cppParse :: Parser Args
 cppParse =
   optional $
     strArgument
@@ -62,7 +64,7 @@ cppParse =
           <> help "query string for JSON parsing, if not present then read from stdin"
       )
 
-cppRun :: Maybe String -> RIO app ()
+cppRun :: Args -> RIO app ()
 cppRun input = liftIO $ do
   input' <-
     fromMaybe
