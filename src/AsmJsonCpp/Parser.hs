@@ -74,6 +74,19 @@ field = between (symbol "(") (symbol ")") $ do
 
   return (name, asm)
 
+indexField :: Parser (Int, L.Text, AsmJson)
+indexField = between (symbol "(") (symbol ")") $ do
+  i <- index
+  _ <- symbol ","
+  name <- fieldName
+  _ <- symbol ","
+  asm <- asmJson
+
+  return (i, name, asm)
+
+index :: Parser Int
+index = lexeme Lex.decimal
+
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme space
 
