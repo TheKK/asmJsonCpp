@@ -8,7 +8,7 @@ where
 import AsmJsonCpp.Asm
 import AsmJsonCpp.Compiler
 import AsmJsonCpp.CppExpr
-import AsmJsonCpp.Parser
+import AsmJsonCpp.Parser hiding (Parser)
 import Control.Monad.Trans.Except
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as L
@@ -48,12 +48,19 @@ printGeneratedCppSourceCode asm = do
 
 cppSubCmd :: ExceptT (RIO app ()) (Writer (Mod CommandFields (RIO app ()))) ()
 cppSubCmd =
-  addCommand "cpp" "generate cpp source code to validate & parse JSON value" cppRun $
-    optional $
-      strArgument
-        ( metavar "QUERY"
-            <> help "query string for JSON parsing, if not present then read from stdin"
-        )
+  addCommand
+    "cpp"
+    "generate cpp source code to validate & parse JSON value"
+    cppRun
+    cppParse
+
+cppParse :: Parser (Maybe String)
+cppParse =
+  optional $
+    strArgument
+      ( metavar "QUERY"
+          <> help "query string for JSON parsing, if not present then read from stdin"
+      )
 
 cppRun :: Maybe String -> RIO app ()
 cppRun input = liftIO $ do
