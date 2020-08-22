@@ -53,5 +53,8 @@ printExampleQueryString =
       "",
       "  // Parse field of object.",
       "  (in_obj, AsObj AtField xyz AsInt),",
+      "",
+      "  // Parse indexes into struct.",
+      "  (indexes, AsArray IndexesToStruct Indexes [(1, first, AsString), (2, second, AsInt),])",
       "]"
     ]
