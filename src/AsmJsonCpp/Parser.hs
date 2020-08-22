@@ -19,7 +19,7 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 type Parser a = Parsec Void L.Text a
 
 parseAsmJson :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
-parseAsmJson = parse (C.space *> asmJson <* eof) "INPUT"
+parseAsmJson = parse (space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
@@ -78,7 +78,7 @@ field = between (symbol "(") (symbol ")") $ do
   return (name, asm)
 
 lexeme :: Parser a -> Parser a
-lexeme = Lex.lexeme C.space
+lexeme = Lex.lexeme space
 
 space :: Parser ()
 space =
@@ -95,4 +95,4 @@ lastKeyword :: L.Text -> Parser ()
 lastKeyword t = void $ C.string t
 
 symbol :: L.Text -> Parser L.Text
-symbol t = Lex.symbol C.space t
+symbol t = Lex.symbol space t
