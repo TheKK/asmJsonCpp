@@ -13,6 +13,7 @@ where
 
 import AsmJsonCpp.Asm
 import AsmJsonCpp.CppExpr
+import AsmJsonCpp.Internal.List
 import AsmJsonCpp.TypeCheck
 import qualified Data.Text.Lazy as L
 import RIO
@@ -88,8 +89,3 @@ compileToJSONGetter (AsArray (EachElement asm)) expr =
     vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =
   compileToJSONGetter asm $ EIndexOperator expr (ENumberLiteral n)
-
-appendOnLast :: Monoid a => a -> [a] -> [a]
-appendOnLast a [] = [a]
-appendOnLast a (x : []) = [x <> a]
-appendOnLast a (x : xs) = x : appendOnLast a xs

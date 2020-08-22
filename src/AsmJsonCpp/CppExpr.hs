@@ -19,6 +19,7 @@ module AsmJsonCpp.CppExpr
   )
 where
 
+import AsmJsonCpp.Internal.List
 import qualified Data.Text.Lazy as L
 import RIO
 import RIO.List
@@ -162,8 +163,3 @@ fnArgsRender :: [(CppType, L.Text)] -> L.Text
 fnArgsRender = L.intercalate ", " . fmap varDecl
   where
     varDecl (cppType, name) = cppTypeRender cppType <> " " <> name
-
-appendOnLast :: Monoid a => a -> [a] -> [a]
-appendOnLast a [] = [a]
-appendOnLast a (x : []) = [x <> a]
-appendOnLast a (x : xs) = x : appendOnLast a xs
