@@ -10,6 +10,7 @@ module AsmJsonCpp.CppExpr
     cvRef,
     CppExpr (..),
     cppExprRender,
+    cppExprRenderMulti,
     cppAndAll,
     CppStmt (..),
     cppStmtRender,
@@ -85,10 +86,12 @@ data CppExpr
   | EParentheses CppExpr
   | -- | Render anything for you.
     EWorkaround [L.Text]
+  | EIndent CppExpr
   deriving (Show)
 
 cppExprRenderMulti :: CppExpr -> [L.Text]
 cppExprRenderMulti (EWorkaround s) = s
+cppExprRenderMulti (EIndent (EWorkaround ls)) = cppExprRenderMulti $ EWorkaround $ fmap ("  " <>) ls
 cppExprRenderMulti expr@_ = pure $ cppExprRender expr
 
 cppExprRender :: CppExpr -> L.Text
@@ -104,6 +107,9 @@ cppExprRender (ENumberLiteral n) = L.pack $ show n
 cppExprRender (EParentheses expr) = "(" <> cppExprRender expr <> ")"
 cppExprRender (EStringLiteral s) = "\"" <> s <> "\""
 cppExprRender (EWorkaround s) = L.init $ L.unlines s -- Trim the last new line
+cppExprRender (EIndent expr) = case expr of
+  (EWorkaround ls) -> cppExprRender $ EWorkaround $ fmap ("  " <>) ls
+  _ -> "  " <> cppExprRender expr
 
 -- | Convert [exprA, exprB, exprC] into "exprA && exprB && exprC"
 cppAndAll :: Foldable t => t CppExpr -> CppExpr
@@ -128,8 +134,7 @@ cppStmtRender (SIf expr bodies) =
     <> ["}"]
 cppStmtRender (SMutAssign lexpr rexpr) =
   [cppExprRender lexpr <> " = " <> rexprFirstLine]
-    <> fmap ("  " <>) rexprRestLines
-    <> [";"]
+    <> appendOnLast ";" rexprRestLines
   where
     rexprRestLines = drop 1 $ rexprLines
     rexprFirstLine = L.unwords . take 1 $ rexprLines
@@ -157,3 +162,8 @@ fnArgsRender :: [(CppType, L.Text)] -> L.Text
 fnArgsRender = L.intercalate ", " . fmap varDecl
   where
     varDecl (cppType, name) = cppTypeRender cppType <> " " <> name
+
+appendOnLast :: Monoid a => a -> [a] -> [a]
+appendOnLast a [] = [a]
+appendOnLast a (x : []) = [x <> a]
+appendOnLast a (x : xs) = x : appendOnLast a xs

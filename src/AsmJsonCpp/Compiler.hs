@@ -65,22 +65,31 @@ compileToJSONGetter (AsObj (AtFields fs)) expr =
       <> ["}"]
   where
     foo :: [L.Text]
-    foo = fmap ((<> ",") . cppExprRender . compile) $ fs
+    foo = concatMap (appendOnLast "," . cppExprRenderMulti . EIndent . compile) $ fs
 
     compile (f, asm) = EIndexOperator expr (EStringLiteral f) & compileToJSONGetter asm
 compileToJSONGetter (AsArray (EachElement asm)) expr =
-  EWorkaround
-    [ "[&] {",
-      "  auto ret = std::vector<" <> retTypeText <> ">{};",
-      "  for (const auto& v : " <> expr' <> ") {",
-      "    ret.emplace_back(" <> vGetter <> ");",
-      "  }",
-      "  return ret;",
-      "}()"
-    ]
+  EWorkaround $
+    []
+      <> [ "[&] {",
+           "  auto ret = std::vector<" <> retTypeText <> ">{};",
+           "  for (const auto& v : " <> expr' <> ") {",
+           "    ret.emplace_back("
+         ]
+      <> fmap ("      " <>) vGetter
+      <> [ "    );",
+           "  }",
+           "  return ret;",
+           "}()"
+         ]
   where
     retTypeText = cppTypeRender $ compileToResultType asm cvNone
     expr' = cppExprRender expr
-    vGetter = cppExprRender $ compileToJSONGetter asm $ EVarLiteral "v"
+    vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =
   compileToJSONGetter asm $ EIndexOperator expr (ENumberLiteral n)
+
+appendOnLast :: Monoid a => a -> [a] -> [a]
+appendOnLast a [] = [a]
+appendOnLast a (x : []) = [x <> a]
+appendOnLast a (x : xs) = x : appendOnLast a xs
