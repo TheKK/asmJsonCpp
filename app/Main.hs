@@ -44,27 +44,32 @@ runAsmJsonCommand :: L.Text -> IO ()
 runAsmJsonCommand input = do
   case parseAsmJson input of
     Left err -> putStrLn . errorBundlePretty $ err
-    Right asm -> do
-      tryPrintingResultTypeDeclaration asm
-      tryPrintingResultTypeDefinition asm
-      printFunctionBody asm
+    Right asm -> printGeneratedCppSourceCode asm
   where
-    tryPrintingResultTypeDeclaration asm =
-      for_ ((maybeToList . cppTypeRenderForwardDeclaration) =<< (toList $ compileToResultTypes asm cvNone)) $ \fd -> do
-        L.putStrLn fd
-        L.putStrLn ""
+    printGeneratedCppSourceCode asm' = do
+      tryPrintingResultTypeDeclaration
+      tryPrintingResultTypeDefinition
+      printFunctionBody
+      where
+        tryPrintingResultTypeDeclaration =
+          for_ typeForwardDecls $ \fd -> do
+            L.putStrLn fd
+            L.putStrLn ""
 
-    tryPrintingResultTypeDefinition asm = case compile asm of
-      [] -> do
-        L.putStrLn . L.unlines $
-          [ "// Wow, primitive types rocks right?",
-            "// Let's use them everywhere and get confused.",
-            "// It's string! It's user name! It's email address as well!! What a lovely day."
-          ]
-      defs -> for_ defs L.putStrLn
-    compile asm = (maybeToList . cppTypeRenderDefinition) =<< (toList $ compileToResultTypes asm cvNone)
+        tryPrintingResultTypeDefinition = case typeDefs of
+          [] -> do
+            L.putStrLn . L.unlines $
+              [ "// Wow, primitive types rocks right?",
+                "// Let's use them everywhere and get confused.",
+                "// It's string! It's user name! It's email address as well!! What a lovely day."
+              ]
+          defs -> for_ defs L.putStrLn
 
-    printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC"
+        typeForwardDecls = (maybeToList . cppTypeRenderForwardDeclaration) =<< resultTypes
+        typeDefs = (maybeToList . cppTypeRenderDefinition) =<< resultTypes
+        resultTypes = toList $ compileToResultTypes asm' cvNone
+
+        printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC" $ asm'
 
 subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
 subCommands = do
