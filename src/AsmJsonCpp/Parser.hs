@@ -9,7 +9,6 @@ module AsmJsonCpp.Parser
 where
 
 import AsmJsonCpp.Asm
-import Control.Applicative.Combinators hiding (many, skipManyTill, some)
 import qualified Data.Text.Lazy as L
 import RIO hiding (many, some, try)
 import Text.Megaparsec
