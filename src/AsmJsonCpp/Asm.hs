@@ -12,7 +12,10 @@ import RIO
 
 data AsmObj
   = AtField L.Text AsmJson
-  | -- | This constructs product type.
+  | -- | This constructs product type out from an Object value.
+    --
+    -- First argument is name of struct. Second argument are name and 'AsmObj' of
+    -- fields.
     AtFields L.Text [(L.Text, AsmJson)]
   deriving (Show)
 
