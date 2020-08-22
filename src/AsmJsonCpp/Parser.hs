@@ -80,6 +80,13 @@ field = between (symbol "(") (symbol ")") $ do
 lexeme :: Parser a -> Parser a
 lexeme = Lex.lexeme C.space
 
+space :: Parser ()
+space =
+  Lex.space
+    C.space1
+    (Lex.skipLineComment "//")
+    (Lex.skipBlockComment "/*" "*/")
+
 keyword :: L.Text -> Parser L.Text
 keyword t = lexeme . try $ C.string t <* lookAhead C.space1
 
