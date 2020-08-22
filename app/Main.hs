@@ -14,6 +14,7 @@ import RIO
 import RIO.Process
 import RIO.Writer
 import SubCommand.Cpp
+import SubCommand.Example
 
 -- | Command line arguments
 data Options = Options
@@ -36,6 +37,7 @@ instance HasProcessContext App where
 subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
 subCommands = do
   cppSubCmd
+  exampleSubCmd
 
 main :: IO ()
 main = do
