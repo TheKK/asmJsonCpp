@@ -45,9 +45,15 @@ runAsmJsonCommand input = do
   case parseAsmJson input of
     Left err -> putStrLn . errorBundlePretty $ err
     Right asm -> do
+      tryPrintingResultTypeDeclaration asm
       tryPrintingResultTypeDefinition asm
       printFunctionBody asm
   where
+    tryPrintingResultTypeDeclaration asm =
+      for_ ((maybeToList . cppTypeRenderForwardDeclaration) =<< (toList $ compileToResultTypes asm cvNone)) $ \fd -> do
+        L.putStrLn fd
+        L.putStrLn ""
+
     tryPrintingResultTypeDefinition asm = case compile asm of
       [] -> do
         L.putStrLn . L.unlines $
