@@ -56,6 +56,17 @@ compileToResultTypes (AsArray (EachElement asm)) cv =
     thisType = CppTypeGeneric cv "std::vector" [rootOfRestTypes]
     rootOfRestTypes = N.head $ restTypes
     restTypes = compileToResultTypes asm cvNone
+compileToResultTypes (AsArray (IndexesToStruct name iAndAsms)) cv =
+  thisType N.:| restTypes
+  where
+    thisType = CppTypeStruct cv name $ fmap (\(_i, n, ty) -> (n, ty)) rootOfRestTypes
+    rootOfRestTypes = fmap (second N.head) nameAndtypeOfFields
+    restTypes = toList . trd =<< nameAndtypeOfFields
+    nameAndtypeOfFields =
+      (fmap . second) (\asm -> compileToResultTypes asm cvNone) iAndAsms
+
+trd :: (a, b, c) -> c
+trd (_, _, c) = c
 
 compileToJSONTypeCheck :: AsmJson -> CppExpr -> CppStmt
 compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
@@ -99,3 +110,13 @@ compileToJSONGetter (AsArray (EachElement asm)) expr =
     vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =
   compileToJSONGetter asm $ EIndexOperator expr (ENumberLiteral n)
+compileToJSONGetter (AsArray (IndexesToStruct name iAndAsms)) expr =
+  EWorkaround $
+    [name <> " {"]
+      <> fields
+      <> ["}"]
+  where
+    fields :: [L.Text]
+    fields = concatMap (appendOnLast "," . cppExprRenderMulti . EIndent . compile) $ iAndAsms
+
+    compile (i, _f, asm) = EIndexOperator expr (ENumberLiteral i) & compileToJSONGetter asm

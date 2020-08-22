@@ -92,6 +92,8 @@ typeCheckArr :: AsmArray -> CppExpr -> [TypeCheck]
 typeCheckArr (EachElement as) expr = pure $ ShouldBeAllChecked expr $ [typeCheck as]
 typeCheckArr (AtNth nth as) expr =
   pure $ ShouldNthBeChecked nth expr $ [typeCheck as]
+typeCheckArr (IndexesToStruct _ iAndAsms) expr =
+  fmap (\(i, _name, asm) -> ShouldAllBeChecked $ typeCheckArr (AtNth i asm) expr) iAndAsms
 
 typeCheckObj :: AsmObj -> CppExpr -> [TypeCheck]
 typeCheckObj (AtField f as) expr = checkIsMember : typeCheck as atExpr

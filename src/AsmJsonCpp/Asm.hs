@@ -22,6 +22,7 @@ data AsmObj
 data AsmArray
   = EachElement AsmJson
   | AtNth Int AsmJson
+  | IndexesToStruct L.Text [(Int, L.Text, AsmJson)]
   deriving (Show)
 
 data AsmJson
