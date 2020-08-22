@@ -98,5 +98,5 @@ typeCheckObj (AtField f as) expr = checkIsMember : typeCheck as atExpr
   where
     checkIsMember = ShouldBeMember expr $ EStringLiteral f
     atExpr = EIndexOperator expr (EStringLiteral f)
-typeCheckObj (AtFields _ fs) expr =
+typeCheckObj (FieldsToStruct _ fs) expr =
   (pure . ShouldAllBeChecked . flip typeCheckObj expr . uncurry AtField) =<< fs

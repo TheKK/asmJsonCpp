@@ -16,7 +16,7 @@ data AsmObj
     --
     -- First argument is name of struct. Second argument are name and 'AsmObj' of
     -- fields.
-    AtFields L.Text [(L.Text, AsmJson)]
+    FieldsToStruct L.Text [(L.Text, AsmJson)]
   deriving (Show)
 
 data AsmArray

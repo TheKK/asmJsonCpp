@@ -40,7 +40,7 @@ compileToResultType :: AsmJson -> CppCV -> CppType
 compileToResultType AsInt cv = CppTypeNormal cv "int"
 compileToResultType AsString cv = CppTypeNormal cv "std::string"
 compileToResultType (AsObj (AtField _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsObj (AtFields name fields)) cv = CppTypeStruct cv name typeOfFields
+compileToResultType (AsObj (FieldsToStruct name fields)) cv = CppTypeStruct cv name typeOfFields
   where
     typeOfFields = (fmap . second $ \asm -> compileToResultType asm cvNone) fields
 compileToResultType (AsArray (AtNth _ asm)) cv = compileToResultType asm cv
@@ -59,7 +59,7 @@ compileToJSONGetter AsString expr = EMethodCall expr "asString" []
 compileToJSONGetter (AsObj (AtField f asm)) expr =
   EIndexOperator expr (EStringLiteral f)
     & compileToJSONGetter asm
-compileToJSONGetter (AsObj (AtFields name fs)) expr =
+compileToJSONGetter (AsObj (FieldsToStruct name fs)) expr =
   EWorkaround $
     [name <> " {"]
       <> foo
