@@ -77,23 +77,24 @@ printGeneratedCppSourceCode asm = do
 subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
 subCommands = do
   cppSubCmd
-  where
-    cppSubCmd =
-      addCommand "cpp" "generate cpp source code to validate & parse JSON value" cppRun $
-        optional $
-          strArgument
-            ( metavar "QUERY"
-                <> help "query string for JSON parsing, if not present then read from stdin"
-            )
 
-    cppRun :: Maybe String -> RIO App ()
-    cppRun input = liftIO $ do
-      input' <-
-        fromMaybe
-          (L.fromStrict <$> T.getContents)
-          (return . L.pack <$> input)
+cppSubCmd :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
+cppSubCmd =
+  addCommand "cpp" "generate cpp source code to validate & parse JSON value" cppRun $
+    optional $
+      strArgument
+        ( metavar "QUERY"
+            <> help "query string for JSON parsing, if not present then read from stdin"
+        )
 
-      runAsmJsonCommand input'
+cppRun :: Maybe String -> RIO App ()
+cppRun input = liftIO $ do
+  input' <-
+    fromMaybe
+      (L.fromStrict <$> T.getContents)
+      (return . L.pack <$> input)
+
+  runAsmJsonCommand input'
 
 main :: IO ()
 main = do
