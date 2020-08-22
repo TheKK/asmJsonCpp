@@ -37,6 +37,7 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
         <*> asmJson
     atFields =
       AtFields <$ keyword "AtFields"
+        <*> fieldName
         <*> array field
 
     asArray =
