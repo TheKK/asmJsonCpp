@@ -65,7 +65,7 @@ array p = between (symbol "[") (symbol "]") $ do
 
 field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
-  name <- lexeme . fmap fromString $ some alphaNumChar
+  name <- fieldName
   _ <- symbol ","
   asm <- lexeme $ asmJson
 
