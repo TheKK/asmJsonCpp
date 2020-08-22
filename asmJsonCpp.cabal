@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 35a44bbc3962ea036cddd33075c8f066c246a45450d18960ef607ddf1b426d4a
+-- hash: 361bd9061202b86f0d93aa4facfff5d73056c2ccb412f5baa379817fd1842f20
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -56,6 +56,25 @@ executable asmJsonCpp-exe
       Paths_asmJsonCpp
   hs-source-dirs:
       app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -XNoImplicitPrelude -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      asmJsonCpp
+    , base >=4.11 && <10
+    , megaparsec
+    , optparse-simple
+    , parser-combinators
+    , rio >=0.1.12.0
+    , text
+    , transformers
+  default-language: Haskell2010
+
+executable asmJsonCpp-server
+  main-is: Main.hs
+  other-modules:
+      Server
+      Paths_asmJsonCpp
+  hs-source-dirs:
+      server
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wpartial-fields -Wredundant-constraints -XNoImplicitPrelude -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       asmJsonCpp
