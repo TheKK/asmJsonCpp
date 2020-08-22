@@ -51,13 +51,13 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
         <*> asmJson
 
 fieldName :: Parser L.Text
-fieldName = identifier
+fieldName = identifier <?> "field name"
 
 structName :: Parser L.Text
-structName = identifier
+structName = identifier <?> "struct name"
 
 identifier :: Parser L.Text
-identifier = lexeme (fromString <$> (some $ C.alphaNumChar <|> satisfy (== '_')))
+identifier = lexeme (fromString <$> (some $ C.alphaNumChar <|> satisfy (== '_'))) <?> "identifier"
 
 nth :: Parser Int
 nth = lexeme Lex.decimal
