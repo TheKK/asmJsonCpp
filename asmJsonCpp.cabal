@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 08e105b3466795a80453d01efe6bea44cc083e4329b26c11795850d1caa8e94b
+-- hash: e24f788cd33071473165349dffb807c774613ecb16ba042d50e8d5c6642241a3
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -51,6 +51,7 @@ library
 executable asmJsonCpp-exe
   main-is: Main.hs
   other-modules:
+      SubCommand.Cpp
       Paths_asmJsonCpp
   hs-source-dirs:
       app
