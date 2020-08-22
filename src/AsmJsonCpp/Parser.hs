@@ -67,7 +67,7 @@ field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
   name <- fieldName
   _ <- symbol ","
-  asm <- lexeme $ asmJson
+  asm <- asmJson
 
   return (name, asm)
 
