@@ -5,7 +5,7 @@
 -- 'CppStmt' from 'AsmJson'.
 module AsmJsonCpp.Compiler
   ( compileToCppFn,
-    compileToResultType,
+    compileToResultTypes,
     compileToJSONTypeCheck,
     compileToJSONGetter,
   )
@@ -34,28 +34,28 @@ compileToCppFn fnName asm =
     inName = "jsVal"
 
     outExpr = EVarLiteral outName
-    outType = N.head $ compileToResultType asm cvRef
+    outType = N.head $ compileToResultTypes asm cvRef
     outName = "out"
 
-compileToResultType :: AsmJson -> CppCV -> N.NonEmpty CppType
-compileToResultType AsInt cv = pure $ CppTypeNormal cv "int"
-compileToResultType AsString cv = pure $ CppTypeNormal cv "std::string"
-compileToResultType (AsObj (AtField _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsObj (FieldsToStruct name fields)) cv =
+compileToResultTypes :: AsmJson -> CppCV -> N.NonEmpty CppType
+compileToResultTypes AsInt cv = pure $ CppTypeNormal cv "int"
+compileToResultTypes AsString cv = pure $ CppTypeNormal cv "std::string"
+compileToResultTypes (AsObj (AtField _ asm)) cv = compileToResultTypes asm cv
+compileToResultTypes (AsObj (FieldsToStruct name fields)) cv =
   thisType N.:| restTypes
   where
     thisType = CppTypeStruct cv name rootOfRestTypes
     rootOfRestTypes = fmap (second N.head) nameAndtypeOfFields
     restTypes = toList . snd =<< nameAndtypeOfFields
     nameAndtypeOfFields =
-      (fmap . second) (\asm -> compileToResultType asm cvNone) fields
-compileToResultType (AsArray (AtNth _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsArray (EachElement asm)) cv =
+      (fmap . second) (\asm -> compileToResultTypes asm cvNone) fields
+compileToResultTypes (AsArray (AtNth _ asm)) cv = compileToResultTypes asm cv
+compileToResultTypes (AsArray (EachElement asm)) cv =
   thisType N.:| toList restTypes
   where
     thisType = CppTypeGeneric cv "std::vector" [rootOfRestTypes]
     rootOfRestTypes = N.head $ restTypes
-    restTypes = compileToResultType asm cvNone
+    restTypes = compileToResultTypes asm cvNone
 
 compileToJSONTypeCheck :: AsmJson -> CppExpr -> CppStmt
 compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
@@ -94,7 +94,7 @@ compileToJSONGetter (AsArray (EachElement asm)) expr =
            "}()"
          ]
   where
-    retTypeText = cppTypeRender $ N.head $ compileToResultType asm cvNone
+    retTypeText = cppTypeRender $ N.head $ compileToResultTypes asm cvNone
     expr' = cppExprRender expr
     vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =

@@ -56,7 +56,7 @@ runAsmJsonCommand input = do
             "// It's string! It's user name! It's email address as well!! What a lovely day."
           ]
       defs -> for_ defs L.putStrLn
-    compile asm = (maybeToList . cppTypeRenderDefinition) =<< (toList $ compileToResultType asm cvNone)
+    compile asm = (maybeToList . cppTypeRenderDefinition) =<< (toList $ compileToResultTypes asm cvNone)
 
     printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC"
 
