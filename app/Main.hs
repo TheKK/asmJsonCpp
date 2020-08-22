@@ -67,8 +67,8 @@ printGeneratedCppSourceCode asm = do
           ]
       defs -> for_ defs L.putStrLn
 
-    typeForwardDecls = (maybeToList . cppTypeRenderForwardDeclaration) =<< resultTypes
-    typeDefs = (maybeToList . cppTypeRenderDefinition) =<< resultTypes
+    typeForwardDecls = catMaybes . fmap cppTypeRenderForwardDeclaration $ resultTypes
+    typeDefs = catMaybes $ fmap cppTypeRenderDefinition $ resultTypes
 
     resultTypes = toList $ compileToResultTypes asm cvNone
 
