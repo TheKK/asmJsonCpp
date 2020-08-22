@@ -23,8 +23,6 @@ dependencies:
 - base >= 4.11 && < 10
 - rio >= 0.1.12.0
 - text
-- megaparsec
-- parser-combinators
 - transformers
 
 ghc-options:
@@ -39,6 +37,9 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+  - megaparsec
+  - parser-combinators
 
 executables:
   asmJsonCpp-exe:
@@ -47,6 +48,7 @@ executables:
     dependencies:
     - asmJsonCpp
     - optparse-simple
+    - megaparsec
 
     ghc-options:
     - -threaded

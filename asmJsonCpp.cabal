@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 361bd9061202b86f0d93aa4facfff5d73056c2ccb412f5baa379817fd1842f20
+-- hash: 3bf10d6d80527c0cac7bf1c9b527d0c30ec54c7c3a9ab13436f44fbdc340e9b0
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -62,7 +62,6 @@ executable asmJsonCpp-exe
     , base >=4.11 && <10
     , megaparsec
     , optparse-simple
-    , parser-combinators
     , rio >=0.1.12.0
     , text
     , transformers
@@ -79,9 +78,7 @@ executable asmJsonCpp-server
   build-depends:
       asmJsonCpp
     , base >=4.11 && <10
-    , megaparsec
     , optparse-simple
-    , parser-combinators
     , rio >=0.1.12.0
     , text
     , transformers
@@ -99,8 +96,6 @@ test-suite asmJsonCpp-test
       asmJsonCpp
     , base >=4.11 && <10
     , hspec
-    , megaparsec
-    , parser-combinators
     , rio >=0.1.12.0
     , text
     , transformers
