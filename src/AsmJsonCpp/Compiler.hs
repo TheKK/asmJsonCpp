@@ -17,6 +17,7 @@ import AsmJsonCpp.Internal.List
 import AsmJsonCpp.TypeCheck
 import qualified Data.Text.Lazy as L
 import RIO
+import qualified RIO.NonEmpty as N
 
 compileToCppFn :: L.Text -> AsmJson -> CppFn
 compileToCppFn fnName asm =
@@ -33,19 +34,28 @@ compileToCppFn fnName asm =
     inName = "jsVal"
 
     outExpr = EVarLiteral outName
-    outType = compileToResultType asm cvRef
+    outType = N.head $ compileToResultType asm cvRef
     outName = "out"
 
-compileToResultType :: AsmJson -> CppCV -> CppType
-compileToResultType AsInt cv = CppTypeNormal cv "int"
-compileToResultType AsString cv = CppTypeNormal cv "std::string"
+compileToResultType :: AsmJson -> CppCV -> N.NonEmpty CppType
+compileToResultType AsInt cv = pure $ CppTypeNormal cv "int"
+compileToResultType AsString cv = pure $ CppTypeNormal cv "std::string"
 compileToResultType (AsObj (AtField _ asm)) cv = compileToResultType asm cv
-compileToResultType (AsObj (FieldsToStruct name fields)) cv = CppTypeStruct cv name typeOfFields
+compileToResultType (AsObj (FieldsToStruct name fields)) cv =
+  thisType N.:| restTypes
   where
-    typeOfFields = (fmap . second $ \asm -> compileToResultType asm cvNone) fields
+    thisType = CppTypeStruct cv name rootOfRestTypes
+    rootOfRestTypes = fmap (second N.head) nameAndtypeOfFields
+    restTypes = toList . snd =<< nameAndtypeOfFields
+    nameAndtypeOfFields =
+      (fmap . second) (\asm -> compileToResultType asm cvNone) fields
 compileToResultType (AsArray (AtNth _ asm)) cv = compileToResultType asm cv
 compileToResultType (AsArray (EachElement asm)) cv =
-  CppTypeGeneric cv "std::vector" [compileToResultType asm cvNone]
+  thisType N.:| toList restTypes
+  where
+    thisType = CppTypeGeneric cv "std::vector" [rootOfRestTypes]
+    rootOfRestTypes = N.head $ restTypes
+    restTypes = compileToResultType asm cvNone
 
 compileToJSONTypeCheck :: AsmJson -> CppExpr -> CppStmt
 compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
@@ -84,7 +94,7 @@ compileToJSONGetter (AsArray (EachElement asm)) expr =
            "}()"
          ]
   where
-    retTypeText = cppTypeRender $ compileToResultType asm cvNone
+    retTypeText = cppTypeRender $ N.head $ compileToResultType asm cvNone
     expr' = cppExprRender expr
     vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =

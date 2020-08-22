@@ -48,15 +48,16 @@ runAsmJsonCommand input = do
       tryPrintingResultTypeDefinition asm
       printFunctionBody asm
   where
-    tryPrintingResultTypeDefinition asm =
-      case (cppTypeRenderDefinition $ compileToResultType asm cvNone) of
-        Just def -> L.putStrLn def
-        Nothing -> do
-          L.putStrLn . L.unlines $
-            [ "// Wow, primitive types rocks right?",
-              "// Let's use them everywhere and get confused.",
-              "// It's string! It's user name! It's email address as well!! What a lovely day."
-            ]
+    tryPrintingResultTypeDefinition asm = case compile asm of
+      [] -> do
+        L.putStrLn . L.unlines $
+          [ "// Wow, primitive types rocks right?",
+            "// Let's use them everywhere and get confused.",
+            "// It's string! It's user name! It's email address as well!! What a lovely day."
+          ]
+      defs -> for_ defs L.putStrLn
+    compile asm = (maybeToList . cppTypeRenderDefinition) =<< (toList $ compileToResultType asm cvNone)
+
     printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "YOUR_FUNC"
 
 subCommands :: ExceptT (RIO App ()) (Writer (Mod CommandFields (RIO App ()))) ()
