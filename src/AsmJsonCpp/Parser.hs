@@ -41,7 +41,7 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
 
     asArray =
       AsArray <$ keyword "AsArray"
-        <*> choice [eachElement, atNth]
+        <*> choice [eachElement, atNth, indexesToStruct]
     eachElement =
       EachElement <$ keyword "EachElement"
         <*> asmJson
@@ -49,6 +49,10 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
       AtNth <$ keyword "AtNth"
         <*> nth
         <*> asmJson
+    indexesToStruct =
+      IndexesToStruct <$ keyword "IndexesToStruct"
+        <*> structName
+        <*> array indexField
 
 fieldName :: Parser L.Text
 fieldName = identifier <?> "field name"
