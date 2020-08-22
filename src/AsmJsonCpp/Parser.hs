@@ -37,7 +37,7 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
         <*> asmJson
     atFields =
       FieldsToStruct <$ keyword "FieldsToStruct"
-        <*> fieldName
+        <*> structName
         <*> array field
 
     asArray =
@@ -52,7 +52,13 @@ asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
         <*> asmJson
 
 fieldName :: Parser L.Text
-fieldName = lexeme (fromString <$> (some $ alphaNumChar <|> satisfy (== '_')))
+fieldName = identifier
+
+structName :: Parser L.Text
+structName = identifier
+
+identifier :: Parser L.Text
+identifier = lexeme (fromString <$> (some $ alphaNumChar <|> satisfy (== '_')))
 
 nth :: Parser Int
 nth = lexeme Lex.decimal
