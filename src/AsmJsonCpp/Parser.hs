@@ -19,7 +19,7 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 type Parser a = Parsec Void L.Text a
 
 parseAsmJson :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
-parseAsmJson = parse (space `skipManyTill` asmJson <* eof) "INPUT"
+parseAsmJson = parse (space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
