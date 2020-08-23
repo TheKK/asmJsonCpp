@@ -4,7 +4,8 @@
 -- This module provides functions to generate 'CppType', 'CppFn', 'CppExpr' and
 -- 'CppStmt' from 'AsmJson'.
 module AsmJsonCpp.Compiler
-  ( compileToCppFn,
+  ( compileToFullCppSourceCode,
+    compileToCppFn,
     compileToResultTypes,
     compileToJSONTypeCheck,
     compileToJSONGetter,
@@ -18,6 +19,29 @@ import AsmJsonCpp.TypeCheck
 import qualified Data.Text.Lazy as L
 import RIO
 import qualified RIO.NonEmpty as N
+
+compileToFullCppSourceCode :: AsmJson -> L.Text
+compileToFullCppSourceCode asm =
+  L.unlines $
+    typeForwardDecls
+      <> [""]
+      <> typeDefs'
+      <> [functionBody]
+  where
+    typeDefs' = case typeDefs of
+      [] ->
+        [ "// Wow, primitive types rocks right?",
+          "// Let's use them everywhere and get confused.",
+          "// It's string! It's user name! It's email address as well!! What a lovely day."
+        ]
+      defs -> defs
+
+    typeForwardDecls = catMaybes . fmap cppTypeRenderForwardDeclaration $ resultTypes
+    typeDefs = reverse $ catMaybes $ fmap cppTypeRenderDefinition $ resultTypes
+
+    resultTypes = toList $ compileToResultTypes asm cvNone
+
+    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
 
 compileToCppFn :: L.Text -> AsmJson -> CppFn
 compileToCppFn fnName asm =

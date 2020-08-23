@@ -24,29 +24,6 @@ type Args = Maybe String
 printGeneratedCppSourceCode :: AsmJson -> IO ()
 printGeneratedCppSourceCode asm = L.putStrLn $ compileToFullCppSourceCode asm
 
-compileToFullCppSourceCode :: AsmJson -> L.Text
-compileToFullCppSourceCode asm =
-  L.unlines $
-    typeForwardDecls
-      <> [""]
-      <> typeDefs'
-      <> [functionBody]
-  where
-    typeDefs' = case typeDefs of
-      [] ->
-        [ "// Wow, primitive types rocks right?",
-          "// Let's use them everywhere and get confused.",
-          "// It's string! It's user name! It's email address as well!! What a lovely day."
-        ]
-      defs -> defs
-
-    typeForwardDecls = catMaybes . fmap cppTypeRenderForwardDeclaration $ resultTypes
-    typeDefs = reverse $ catMaybes $ fmap cppTypeRenderDefinition $ resultTypes
-
-    resultTypes = toList $ compileToResultTypes asm cvNone
-
-    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
-
 cppSubCmd :: ExceptT (RIO app ()) (Writer (Mod CommandFields (RIO app ()))) ()
 cppSubCmd =
   addCommand
