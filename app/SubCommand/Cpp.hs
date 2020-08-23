@@ -48,5 +48,5 @@ cppRun input = liftIO $ do
       (return . L.pack <$> input)
 
   case parseAsmJson input' of
-    Left err -> putStrLn . errorBundlePretty $ err
+    Left err -> L.putStrLn err
     Right asm -> printGeneratedCppSourceCode asm

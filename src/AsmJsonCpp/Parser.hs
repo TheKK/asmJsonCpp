@@ -17,8 +17,14 @@ import qualified Text.Megaparsec.Char.Lexer as Lex
 
 type Parser a = Parsec Void L.Text a
 
-parseAsmJson :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
-parseAsmJson = parse (space *> asmJson <* eof) "INPUT"
+parseAsmJson :: L.Text -> Either L.Text AsmJson
+parseAsmJson = first (fromString . errorBundlePretty) . parseAsmJson'
+
+-- | Like 'parseAsmJson' but report error as ParseErrorBundle.
+--
+-- Using this version require client to use Megaparsec and that's not common.
+parseAsmJson' :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
+parseAsmJson' = parse (space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
 asmJson = lexeme $ choice [asInt, asString, asObj, asArray]
