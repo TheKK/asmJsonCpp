@@ -61,6 +61,10 @@ executables:
     dependencies:
     - asmJsonCpp
     - optparse-simple
+    - servant
+    - servant-server
+    - warp
+    - wai-extra
 
     ghc-options:
     - -threaded
