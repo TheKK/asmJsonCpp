@@ -22,31 +22,30 @@ import Text.Megaparsec.Error
 type Args = Maybe String
 
 printGeneratedCppSourceCode :: AsmJson -> IO ()
-printGeneratedCppSourceCode asm = do
-  tryPrintingResultTypeDeclaration
-  tryPrintingResultTypeDefinition
-  printFunctionBody
-  where
-    tryPrintingResultTypeDeclaration =
-      for_ typeForwardDecls $ \fd -> do
-        L.putStrLn fd
-        L.putStrLn ""
+printGeneratedCppSourceCode asm = L.putStrLn $ compileToFullCppSourceCode asm
 
-    tryPrintingResultTypeDefinition = case typeDefs of
-      [] -> do
-        L.putStrLn . L.unlines $
-          [ "// Wow, primitive types rocks right?",
-            "// Let's use them everywhere and get confused.",
-            "// It's string! It's user name! It's email address as well!! What a lovely day."
-          ]
-      defs -> for_ defs L.putStrLn
+compileToFullCppSourceCode :: AsmJson -> L.Text
+compileToFullCppSourceCode asm =
+  L.unlines $
+    typeForwardDecls
+      <> [""]
+      <> typeDefs'
+      <> [functionBody]
+  where
+    typeDefs' = case typeDefs of
+      [] ->
+        [ "// Wow, primitive types rocks right?",
+          "// Let's use them everywhere and get confused.",
+          "// It's string! It's user name! It's email address as well!! What a lovely day."
+        ]
+      defs -> defs
 
     typeForwardDecls = catMaybes . fmap cppTypeRenderForwardDeclaration $ resultTypes
     typeDefs = reverse $ catMaybes $ fmap cppTypeRenderDefinition $ resultTypes
 
     resultTypes = toList $ compileToResultTypes asm cvNone
 
-    printFunctionBody = L.putStrLn . cppFnRender . compileToCppFn "from_json" $ asm
+    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
 
 cppSubCmd :: ExceptT (RIO app ()) (Writer (Mod CommandFields (RIO app ()))) ()
 cppSubCmd =
