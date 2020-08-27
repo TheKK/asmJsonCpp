@@ -28,6 +28,7 @@ data AsmArray
 data AsmJson
   = AsInt
   | AsString
+  | AsBool
   | AsObj AsmObj
   | AsArray AsmArray
   deriving (Show)

@@ -63,6 +63,7 @@ compileToCppFn fnName asm =
 
 compileToResultTypes :: AsmJson -> CppCV -> N.NonEmpty CppType
 compileToResultTypes AsInt cv = pure $ CppTypeNormal cv "int"
+compileToResultTypes AsBool cv = pure $ CppTypeNormal cv "bool"
 compileToResultTypes AsString cv = pure $ CppTypeNormal cv "std::string"
 compileToResultTypes (AsObj (AtField _ asm)) cv = compileToResultTypes asm cv
 compileToResultTypes (AsObj (FieldsToStruct name fields)) cv =
@@ -100,6 +101,7 @@ compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
 
 compileToJSONGetter :: AsmJson -> CppExpr -> CppExpr
 compileToJSONGetter AsInt expr = EMethodCall expr "asInt" []
+compileToJSONGetter AsBool expr = EMethodCall expr "asBool" []
 compileToJSONGetter AsString expr = EMethodCall expr "asString" []
 compileToJSONGetter (AsObj (AtField f asm)) expr =
   EIndexOperator expr (EStringLiteral f)
