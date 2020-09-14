@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2fbcff4fbda4b1a864b75e8d3b782ceed2d042134c84603c7367e64ac2df812a
+-- hash: 3166b41dc96679991fb1c5af9a1e8a17f2fd8d599cb688f21f915d42b8c5d7ab
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -83,6 +83,7 @@ executable asmJsonCpp-server
     , servant-server
     , text
     , transformers
+    , wai-cors
     , wai-extra
     , warp
   default-language: Haskell2010

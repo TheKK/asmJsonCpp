@@ -65,6 +65,7 @@ executables:
     - servant-server
     - warp
     - wai-extra
+    - wai-cors
 
     ghc-options:
     - -threaded

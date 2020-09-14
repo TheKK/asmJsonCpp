@@ -9,6 +9,7 @@ import AsmJsonCpp.Parser
 import qualified Data.Text.Lazy as L
 import qualified Network.Wai.Handler.Warp as Warp
 import Network.Wai.Middleware.RequestLogger
+import Network.Wai.Middleware.Cors
 import RIO
 import qualified RIO.ByteString.Lazy as BL
 import Servant
@@ -34,4 +35,5 @@ main :: IO ()
 main =
   Warp.runEnv 1234 $
     app
+      & simpleCors
       & logStdoutDev
