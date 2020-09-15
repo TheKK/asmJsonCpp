@@ -7,7 +7,6 @@ where
 
 import AsmJsonCpp.Asm
 import AsmJsonCpp.Compiler
-import AsmJsonCpp.CppExpr
 import AsmJsonCpp.Parser hiding (Parser)
 import Control.Monad.Trans.Except
 import qualified Data.Text.IO as T
@@ -16,8 +15,6 @@ import qualified Data.Text.Lazy.IO as L
 import Options.Applicative.Simple
 import RIO
 import RIO.Writer
-import System.IO (putStrLn)
-import Text.Megaparsec.Error
 
 type Args = Maybe String
 
