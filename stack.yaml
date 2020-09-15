@@ -40,6 +40,8 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 # extra-deps: []
+extra-deps:
+- wai-log-0.2.0.0@sha256:781f61c8b44a5ad5db662611c405c07ba3ec5c8e0a9435f143396c61ccbd9b5c,1581 
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

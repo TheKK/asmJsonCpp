@@ -64,8 +64,9 @@ executables:
     - servant
     - servant-server
     - warp
-    - wai-extra
     - wai-cors
+    - wai-log
+    - log-base
 
     ghc-options:
     - -threaded

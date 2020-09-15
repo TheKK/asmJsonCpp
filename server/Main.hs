@@ -7,8 +7,10 @@ module Main (main) where
 import AsmJsonCpp.Compiler
 import AsmJsonCpp.Parser
 import qualified Data.Text.Lazy as L
+import Log
+import Log.Backend.StandardOutput
+import Network.Wai.Log
 import qualified Network.Wai.Handler.Warp as Warp
-import Network.Wai.Middleware.RequestLogger
 import Network.Wai.Middleware.Cors
 import RIO
 import qualified RIO.ByteString.Lazy as BL
@@ -32,8 +34,12 @@ app :: Application
 app = serve api server
 
 main :: IO ()
-main =
-  Warp.runEnv 1234 $
-    app
-      & simpleCors
-      & logStdoutDev
+main = do
+  withSimpleStdOutLogger $ \l -> do
+    logger <- runLogT "server" l $ do
+      mkApplicationLoggerWith defaultOptions
+
+    Warp.runEnv 5587 $
+      app
+        & simpleCors
+        & logger
