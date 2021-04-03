@@ -100,25 +100,14 @@
         "type": "github"
       }
     },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1617356181,
-        "narHash": "sha256-iAvmf7kDfhr09sfN6/+GKp83gQ3EnF2JwS0K4LX1YiE=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "46ba1c345835d6ee71df68d7e9eafc845f2ad255",
-        "type": "github"
-      },
-      "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
-      }
-    },
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
         "haskell-nix": "haskell-nix",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": [
+          "haskell-nix",
+          "nixpkgs"
+        ]
       }
     }
   },

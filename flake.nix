@@ -4,57 +4,42 @@
   inputs = {
     haskell-nix.url = "github:input-output-hk/haskell.nix";
     flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.follows = "haskell-nix/nixpkgs";
   };
 
   outputs = { self, nixpkgs, flake-utils, haskell-nix, ... }:
     flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
       let
-        pkgs = haskell-nix.legacyPackages.${system};
+        overlays = [
+          haskell-nix.overlay
+          (final: prev: {
+            asmJsonCpp = final.haskell-nix.stackProject' {
+              src = pkgs.haskell-nix.haskellLib.cleanGit {
+                name = "asmJsonCpp";
+                src = ./.;
+              };
+            };
+          })
+        ];
+
+        pkgs = import nixpkgs { inherit system overlays; };
         hsPkgs = pkgs.haskellPackages;
 
-        haskellNix = pkgs.haskell-nix.stackProject {
-          src = pkgs.haskell-nix.haskellLib.cleanGit {
-            name = "asmJsonCpp";
-            src = ./.;
-          };
-        };
+        asmJsonCpp = pkgs.asmJsonCpp;
+        asmJsonCpp-flake = asmJsonCpp.flake { };
 
-        asmJsonCpp-exe = haskellNix.asmJsonCpp.components.exes.asmJsonCpp-exe;
-        asmJsonCpp-server =
-          haskellNix.asmJsonCpp.components.exes.asmJsonCpp-server;
-
-        asmJsonCpp-gc-root = haskellNix.asmJsonCpp.project.roots;
-
-      in rec {
-        packages = flake-utils.lib.flattenTree {
-          inherit asmJsonCpp-exe;
-          inherit asmJsonCpp-server;
-        };
-
-        defaultPackage = packages.asmJsonCpp-exe;
-
-        apps = {
-          asmJsonCpp-exe = flake-utils.lib.mkApp {
-            drv = packages.asmJsonCpp-exe;
-            exePath = "/bin/asmJsonCpp-exe";
-          };
-          asmJsonCpp-server = flake-utils.lib.mkApp {
-            drv = packages.asmJsonCpp-server;
-            exePath = "/bin/asmJsonCpp-server";
-          };
-        };
-
-        defaultApp = apps.asmJsonCpp-exe;
-
-        devShell = haskellNix.shellFor {
-          packages = p: [ p.asmJsonCpp ];
+      in asmJsonCpp-flake // {
+        defaultPackage =
+          asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
+        defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
+        devShell = asmJsonCpp.shellFor {
           withHoogle = false;
           tools = {
             cabal = "3.2.0.0";
             haskell-language-server = "1.0.0.0";
             ghcid = "0.8.7";
           };
-          nativeBuildInputs = [ hsPkgs.hpack pkgs.ormolu asmJsonCpp-gc-root ];
+          nativeBuildInputs = [ hsPkgs.hpack pkgs.ormolu ];
           exactDeps = true;
         };
       });
