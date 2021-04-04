@@ -28,6 +28,9 @@
         asmJsonCpp = pkgs.asmJsonCpp;
         asmJsonCpp-flake = asmJsonCpp.flake { };
 
+        # TODO Still not enough and should be fixed in haskell.nix.
+        gc-roots = [ asmJsonCpp.stack-nix ];
+
       in asmJsonCpp-flake // {
         defaultPackage =
           asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
@@ -39,7 +42,7 @@
             haskell-language-server = "1.0.0.0";
             ghcid = "0.8.7";
           };
-          nativeBuildInputs = [ hsPkgs.hpack pkgs.ormolu ];
+          nativeBuildInputs = [ hsPkgs.hpack pkgs.ormolu ] ++ gc-roots;
           exactDeps = true;
         };
       });
