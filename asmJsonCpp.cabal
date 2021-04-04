@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5efb7c83c32d73e2ecbe1ecd7d783358a6ed4ac63af1a363ef500e574c15141c
+-- hash: d3305a2e27dea24d9aad2433bd1623b0557e305355be4e828b5e287b52ffb3cf
 
 name:           asmJsonCpp
 version:        0.1.0.0
@@ -43,6 +43,7 @@ library
       base >=4.11 && <10
     , megaparsec
     , parser-combinators
+    , prettyprinter
     , rio >=0.1.12.0
     , text
     , transformers
@@ -62,6 +63,7 @@ executable asmJsonCpp-exe
     , base >=4.11 && <10
     , megaparsec
     , optparse-simple
+    , prettyprinter
     , rio >=0.1.12.0
     , text
     , transformers
@@ -79,6 +81,7 @@ executable asmJsonCpp-server
     , base >=4.11 && <10
     , log-base
     , optparse-simple
+    , prettyprinter
     , rio >=0.1.12.0
     , servant
     , servant-server
@@ -101,6 +104,7 @@ test-suite asmJsonCpp-test
       asmJsonCpp
     , base >=4.11 && <10
     , hspec
+    , prettyprinter
     , rio >=0.1.12.0
     , text
     , transformers
