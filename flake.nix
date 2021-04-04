@@ -28,8 +28,18 @@
         asmJsonCpp = pkgs.asmJsonCpp;
         asmJsonCpp-flake = asmJsonCpp.flake { };
 
-        # TODO Still not enough and should be fixed in haskell.nix.
-        gc-roots = [ asmJsonCpp.stack-nix ];
+        tools = {
+            cabal = "3.2.0.0";
+            haskell-language-server = "1.0.0.0";
+            ghcid = "0.8.7";
+        };
+
+        tools-gc-roots =
+          let
+            toolsDrv = builtins.attrValues (asmJsonCpp.tools tools);
+            toolsProjectPlanNix = builtins.map (t: t.project.plan-nix) toolsDrv;
+          in toolsDrv ++ toolsProjectPlanNix;
+        gc-roots = [ asmJsonCpp.stack-nix asmJsonCpp.roots ] ++ tools-gc-roots;
 
       in asmJsonCpp-flake // {
         defaultPackage =
@@ -37,11 +47,7 @@
         defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
         devShell = asmJsonCpp.shellFor {
           withHoogle = false;
-          tools = {
-            cabal = "3.2.0.0";
-            haskell-language-server = "1.0.0.0";
-            ghcid = "0.8.7";
-          };
+          inherit tools;
           nativeBuildInputs = [ hsPkgs.hpack pkgs.ormolu ] ++ gc-roots;
           exactDeps = true;
         };
