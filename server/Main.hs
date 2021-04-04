@@ -9,8 +9,8 @@ import AsmJsonCpp.Parser
 import qualified Data.Text.Lazy as L
 import Log
 import Log.Backend.StandardOutput
-import Network.Wai.Log
 import qualified Network.Wai.Handler.Warp as Warp
+import Network.Wai.Log
 import Network.Wai.Middleware.Cors
 import RIO
 import qualified RIO.ByteString.Lazy as BL
