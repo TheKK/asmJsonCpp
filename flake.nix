@@ -14,7 +14,7 @@
           haskell-nix.overlay
           (final: prev: {
             asmJsonCpp = final.haskell-nix.stackProject' {
-              src = pkgs.haskell-nix.haskellLib.cleanGit {
+              src = final.haskell-nix.haskellLib.cleanGit {
                 name = "asmJsonCpp";
                 src = ./.;
               };

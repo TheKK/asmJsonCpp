@@ -67,18 +67,16 @@ compileTypeCheck (ShouldNthBeChecked nth expr checks) =
     checks' = ($ nthExpr) =<< checks
     nthExpr = EIndexOperator expr (ENumberLiteral nth)
 compileTypeCheck (ShouldBeAllChecked expr checks) =
-  -- TODO EWorkaround should be removed in the future.
   -- TODO Use 'all_of' to do this
-  EWorkaround
-    [ "[&]{"
-        -- TODO Variable should change for nested case. Even though shadowing is allowed.
-        <> (" for (const auto& x : " <> cppExprRender expr <> ") { ")
-        <> ("if (!(" <> (cppExprRender . compileTypeChecks $ checks') <> ")) { return false; }")
-        <> "} "
-        <> "return true; }()"
+  EIIFE
+    [ SRangeFor (CppTypeNormal (cvConst <> cvRef) "auto") "x" expr $
+        [ SIf (EFunctionCall "!" [checksExpr]) $
+            [SReturn $ EVarLiteral "false"]
+        ],
+      SReturn $ EVarLiteral "true"
     ]
   where
-    checks' = ($ EVarLiteral "x") =<< checks
+    checksExpr = compileTypeChecks (($ EVarLiteral "x") =<< checks)
 
 typeCheck ::
   AsmJson ->

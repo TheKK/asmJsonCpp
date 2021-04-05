@@ -5,40 +5,51 @@ module AsmJsonCpp.CppExpr
   ( CppType (..),
     cppTypeRender,
     cppTypeRenderForwardDeclaration,
+    cppTypeRenderForwardDeclaration',
     cppTypeRenderDefinition,
+    cppTypeRenderDefinition',
     CppCV (..),
     cvNone,
+    cvConst,
     cvRef,
     CppExpr (..),
     cppExprRender,
+    cppExprRender',
     cppExprRenderMulti,
     cppAndAll,
     CppStmt (..),
     cppStmtRender,
+    cppStmtRender',
     CppFn (..),
-    cppFnRender,
+    cppFnRender',
   )
 where
 
 import AsmJsonCpp.Internal.List
 import qualified Data.Text.Lazy as L
+import Data.Text.Prettyprint.Doc
+import qualified Data.Text.Prettyprint.Doc as P
 import RIO
 import RIO.List
 import RIO.List.Partial
 
 data CppCV = CppCV
-  { _cvRef :: Bool
+  { _cvConst :: Bool,
+    _cvRef :: Bool
   }
   deriving (Show)
 
 instance Semigroup CppCV where
-  (CppCV ref) <> (CppCV ref') = CppCV (ref || ref')
+  (CppCV c r) <> (CppCV c' r') = CppCV (c || c') (r || r')
 
 cvNone :: CppCV
-cvNone = CppCV False
+cvNone = CppCV False False
+
+cvConst :: CppCV
+cvConst = CppCV True False
 
 cvRef :: CppCV
-cvRef = CppCV True
+cvRef = CppCV False True
 
 -- | Data represent types in C++.
 data CppType
@@ -51,36 +62,51 @@ data CppType
   deriving (Show)
 
 cppTypeRender :: CppType -> L.Text
-cppTypeRender (CppTypeNormal cv ty) = ty <> cppCVRender cv
-cppTypeRender (CppTypeGeneric cv ty args) = ty <> "<" <> args' <> ">" <> cppCVRender cv
-  where
-    args' = L.intercalate ", " $ fmap cppTypeRender args
-cppTypeRender (CppTypeStruct cv name _fields) = name <> cppCVRender cv
+cppTypeRender = L.pack . show . cppTypeRender'
+
+cppTypeRender' :: CppType -> Doc ann
+cppTypeRender' (CppTypeNormal cv ty) = pretty $ ty <> cppCVRender cv
+cppTypeRender' (CppTypeGeneric cv ty args) = pretty ty <> encloseSep "<" ">" ", " (fmap cppTypeRender' args) <> cppCVRender' cv
+cppTypeRender' (CppTypeStruct cv name _fields) = pretty $ name <> cppCVRender cv
 
 -- | This function only render 'CppTypeStruct' since other type should be
 --  pre-defined.
 cppTypeRenderForwardDeclaration :: CppType -> Maybe L.Text
-cppTypeRenderForwardDeclaration (CppTypeStruct _cv name _fields) = Just $ "struct " <> name <> ";"
-cppTypeRenderForwardDeclaration _ = Nothing
+cppTypeRenderForwardDeclaration = fmap (L.pack . show) . cppTypeRenderForwardDeclaration'
+
+cppTypeRenderForwardDeclaration' :: CppType -> Maybe (Doc ann)
+cppTypeRenderForwardDeclaration' (CppTypeStruct _cv name _fields) = Just $ "struct" <+> pretty name <> ";"
+cppTypeRenderForwardDeclaration' _ = Nothing
 
 -- | This function only render 'CppTypeStruct' since other type should be
 --  pre-defined.
 cppTypeRenderDefinition :: CppType -> Maybe L.Text
-cppTypeRenderDefinition (CppTypeStruct _cv name fields) =
+cppTypeRenderDefinition = fmap (L.pack . show) . cppTypeRenderDefinition'
+
+cppTypeRenderDefinition' :: CppType -> Maybe (Doc ann)
+cppTypeRenderDefinition' (CppTypeStruct _cv name fields) =
   Just $
-    L.unlines $
-      ["struct " <> name <> " final {"]
-        <> fmap ("  " <>) fields'
-        <> ["};"]
+    vsep
+      [ "struct" <+> pretty name <+> "final {",
+        indent 2 $ vsep fields',
+        "};"
+      ]
   where
     fields' = fmap toFieldText fields
     toFieldText (fieldName, fieldTy) =
-      cppTypeRender fieldTy <> " " <> fieldName <> ";"
-cppTypeRenderDefinition _ = Nothing
+      cppTypeRender' fieldTy <+> pretty fieldName <> ";"
+cppTypeRenderDefinition' _ = Nothing
 
 cppCVRender :: CppCV -> L.Text
-cppCVRender (CppCV True) = "&"
-cppCVRender (CppCV False) = ""
+cppCVRender = L.pack . show . cppCVRender'
+
+cppCVRender' :: CppCV -> Doc ann
+cppCVRender' (CppCV c r) =
+  -- TODO The space before const is a workaround, should use more elegant solution.
+  concatWith (<>) [opt c " const", opt r "&"]
+  where
+    opt True v = v
+    opt False _ = ""
 
 data CppExpr
   = EVarLiteral L.Text
@@ -92,32 +118,43 @@ data CppExpr
   | EStringLiteral L.Text
   | ENumberLiteral Int
   | EParentheses CppExpr
-  | -- | Render anything for you.
-    EWorkaround [L.Text]
-  | EIndent CppExpr
+  | -- TODO Maybe we don't need the Maybe here?
+    EListInitialization (Maybe CppType) ~[CppExpr]
+  | EIIFE [CppStmt]
   deriving (Show)
 
 cppExprRenderMulti :: CppExpr -> [L.Text]
-cppExprRenderMulti (EWorkaround s) = s
-cppExprRenderMulti (EIndent (EWorkaround ls)) = cppExprRenderMulti $ EWorkaround $ fmap ("  " <>) ls
-cppExprRenderMulti expr@_ = pure $ cppExprRender expr
+cppExprRenderMulti expr = pure $ cppExprRender expr
 
 cppExprRender :: CppExpr -> L.Text
-cppExprRender (EVarLiteral var) = var
-cppExprRender (EInfixFn fn l r) = cppExprRender l <> " " <> fn <> " " <> cppExprRender r
-cppExprRender (EIndexOperator expr i) = cppExprRender expr <> "[" <> cppExprRender i <> "]"
-cppExprRender (EMethodCall expr method args) =
-  cppExprRender expr <> "." <> method <> "(" <> argsRender args <> ")"
-cppExprRender (EFunctionCall fn args) = fn <> "(" <> argsRender args <> ")"
-cppExprRender (EBoolLiteral True) = "true"
-cppExprRender (EBoolLiteral False) = "false"
-cppExprRender (ENumberLiteral n) = L.pack $ show n
-cppExprRender (EParentheses expr) = "(" <> cppExprRender expr <> ")"
-cppExprRender (EStringLiteral s) = "\"" <> s <> "\""
-cppExprRender (EWorkaround s) = L.init $ L.unlines s -- Trim the last new line
-cppExprRender (EIndent expr) = case expr of
-  (EWorkaround ls) -> cppExprRender $ EWorkaround $ fmap ("  " <>) ls
-  _ -> "  " <> cppExprRender expr
+cppExprRender = L.pack . show . cppExprRender'
+
+cppExprRender' :: CppExpr -> Doc ann
+cppExprRender' (EVarLiteral var) = pretty var
+cppExprRender' (EInfixFn fn l r) = align $ sep [cppExprRender' l <+> pretty fn, cppExprRender' r]
+cppExprRender' (EIndexOperator expr i) = cppExprRender' expr <> brackets (align $ cppExprRender' i)
+cppExprRender' (EMethodCall expr method args) =
+  hcat
+    [ cppExprRender' expr,
+      "." <> pretty method <> parens (sep $ argsRender' args)
+    ]
+cppExprRender' (EFunctionCall fn args) =
+  fillCat [pretty fn, parens $ nest 2 $ fillCat $ argsRender' args]
+cppExprRender' (EBoolLiteral True) = "true"
+cppExprRender' (EBoolLiteral False) = "false"
+cppExprRender' (ENumberLiteral n) = pretty n
+cppExprRender' (EParentheses expr) = parens $ cppExprRender' expr
+cppExprRender' (EListInitialization optTy exprs) =
+  case exprs of
+    [] -> ty <> "{}"
+    _ ->
+      vIndentBox 2 (ty <+> "{") "}" $
+        (<> ",") . cppExprRender' <$> exprs
+  where
+    ty = maybe "" cppTypeRender' optTy
+cppExprRender' (EStringLiteral s) = dquotes $ pretty s
+cppExprRender' (EIIFE body) =
+  vIndentBox 2 "[&] {" "}()" $ cppStmtRender' <$> body
 
 -- | Convert [exprA, exprB, exprC] into "exprA && exprB && exprC"
 cppAndAll :: Foldable t => t CppExpr -> CppExpr
@@ -125,48 +162,77 @@ cppAndAll cs
   | null cs = EBoolLiteral True
   | otherwise = foldr1 (EInfixFn "&&") cs
 
-argsRender :: [CppExpr] -> L.Text
-argsRender = L.intercalate ", " . fmap cppExprRender
+argsRender' :: [CppExpr] -> [Doc ann]
+argsRender' = punctuate ", " . fmap cppExprRender'
 
 data CppStmt
   = SIf CppExpr [CppStmt]
+  | SRangeFor CppType L.Text CppExpr [CppStmt]
+  | SVarDeclWithInit CppType L.Text CppExpr
   | SMutAssign CppExpr CppExpr
+  | SJustExpr CppExpr
   | SReturn CppExpr
-  | SIndent [CppStmt]
-  | SBlankLine
+  deriving (Show)
 
 cppStmtRender :: CppStmt -> [L.Text]
-cppStmtRender (SIf expr bodies) =
-  ["if (" <> cppExprRender expr <> ") {"]
-    <> (cppStmtRender . SIndent) bodies
-    <> ["}"]
-cppStmtRender (SMutAssign lexpr rexpr) =
-  [cppExprRender lexpr <> " = " <> rexprFirstLine]
-    <> appendOnLast ";" rexprRestLines
+cppStmtRender = pure . L.pack . show . cppStmtRender'
+
+cppStmtRender' :: CppStmt -> Doc ann
+cppStmtRender' (SIf expr bodies) =
+  vsep
+    [ "if (" <> align (cppExprRender' expr) <> ") {",
+      indent 2 $ fillSep $ fmap cppStmtRender' bodies,
+      "}"
+    ]
+cppStmtRender' (SRangeFor ty varName expr body) =
+  vIndentBox
+    2
+    ("for (" <> tyDoc <+> varNameDoc <+> ":" <+> exprDoc <> ") {")
+    "}"
+    $ cppStmtRender' <$> body
   where
-    rexprRestLines = drop 1 $ rexprLines
-    rexprFirstLine = L.unwords . take 1 $ rexprLines
-    rexprLines = cppExprRenderMulti rexpr
-cppStmtRender (SReturn expr) =
-  [ "return " <> cppExprRender expr <> ";"
-  ]
-cppStmtRender (SIndent stmts) = fmap ("  " <>) $ cppStmtRender =<< stmts
-cppStmtRender (SBlankLine) = [""]
+    tyDoc = cppTypeRender' ty
+    varNameDoc = pretty varName
+    exprDoc = cppExprRender' expr
+cppStmtRender' (SVarDeclWithInit ty varName expr) =
+  nest 2 . sep $
+    [ cppTypeRender' ty <+> pretty varName <+> "=",
+      cppExprRender' expr <> ";"
+    ]
+cppStmtRender' (SMutAssign lexpr rexpr) =
+  nest 2 . sep $
+    [ cppExprRender' lexpr <+> "=",
+      cppExprRender' rexpr <> ";"
+    ]
+cppStmtRender' (SJustExpr expr) = cppExprRender' expr <> ";"
+cppStmtRender' (SReturn expr) = sep ["return", cppExprRender' expr <> ";"]
 
 type FunctionName = L.Text
 
 data CppFn = CppFn FunctionName [(CppType, L.Text)] CppType [CppStmt]
 
-cppFnRender :: CppFn -> L.Text
-cppFnRender (CppFn fnName args returnType fnBody) =
-  L.unlines $
-    ["auto " <> fnName <> "(" <> argsText <> ") -> " <> cppTypeRender returnType <> " {"]
-      <> (cppStmtRender . SIndent . intersperse SBlankLine $ fnBody)
-      <> ["}"]
-  where
-    argsText = fnArgsRender args
+cppFnRender' :: CppFn -> Doc ann
+cppFnRender' (CppFn fnName args returnType fnBody) =
+  vsep
+    [ "auto"
+        <+> pretty fnName <> parens (pretty $ fnArgsRender args)
+        <+> "->"
+        <+> cppTypeRender' returnType
+        <+> "{",
+      indent 2 $ vsep $ fmap cppStmtRender' fnBody,
+      "}"
+    ]
 
 fnArgsRender :: [(CppType, L.Text)] -> L.Text
 fnArgsRender = L.intercalate ", " . fmap varDecl
   where
     varDecl (cppType, name) = cppTypeRender cppType <> " " <> name
+
+-- Not the best name though.
+vIndentBox :: Int -> Doc ann -> Doc ann -> [Doc ann] -> Doc ann
+vIndentBox by firstLine lastLine contents =
+  hcat . punctuate hardline . join $
+    [ [firstLine],
+      indent by <$> contents,
+      [lastLine]
+    ]

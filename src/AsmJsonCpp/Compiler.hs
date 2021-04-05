@@ -17,17 +17,23 @@ import AsmJsonCpp.CppExpr
 import AsmJsonCpp.Internal.List
 import AsmJsonCpp.TypeCheck
 import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy.IO as L
+import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc.Render.Text
+import Data.Text.Prettyprint.Doc.Util
 import RIO
 import qualified RIO.NonEmpty as N
 
-compileToFullCppSourceCode :: AsmJson -> L.Text
-compileToFullCppSourceCode asm =
-  L.unlines $
-    typeForwardDecls
-      <> [""]
-      <> typeDefs'
-      <> [functionBody]
+-- data CppFn = CppFn FunctionName [(CppType, L.Text)] CppType [CppStmt]
+compileToFullCppDoc :: AsmJson -> Doc ann
+compileToFullCppDoc asm =
+  vsep
+    [ typeForwardDecls,
+      vsep typeDefs',
+      functionBody
+    ]
   where
+    typeForwardDecls = vsep $ mapMaybe cppTypeRenderForwardDeclaration' resultTypes
     typeDefs' = case typeDefs of
       [] ->
         [ "// Wow, primitive types rocks right?",
@@ -35,17 +41,23 @@ compileToFullCppSourceCode asm =
           "// It's string! It's user name! It's email address as well!! What a lovely day."
         ]
       defs -> defs
-
-    typeForwardDecls = catMaybes . fmap cppTypeRenderForwardDeclaration $ resultTypes
-    typeDefs = reverse $ catMaybes $ fmap cppTypeRenderDefinition $ resultTypes
+    functionBody = cppFnRender' . compileToCppFn "from_json" $ asm
+    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition' resultTypes
 
     resultTypes = toList $ compileToResultTypes asm cvNone
 
-    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
+compileToFullCppSourceCode :: AsmJson -> L.Text
+compileToFullCppSourceCode =
+  renderLazy
+    . layoutPretty (LayoutOptions (AvailablePerLine 100 1))
+    . compileToFullCppDoc
 
 compileToCppFn :: L.Text -> AsmJson -> CppFn
 compileToCppFn fnName asm =
-  CppFn fnName args (CppTypeNormal cvNone "bool") $
+  CppFn
+    fnName
+    args
+    (CppTypeNormal cvNone "bool")
     [ compileToJSONTypeCheck asm inExpr,
       SMutAssign outExpr $ compileToJSONGetter asm inExpr,
       SReturn $ EBoolLiteral True
@@ -54,7 +66,7 @@ compileToCppFn fnName asm =
     args = [(inType, inName), (outType, outName)]
 
     inExpr = EVarLiteral inName
-    inType = CppTypeNormal cvRef "const Json::Value"
+    inType = CppTypeNormal (cvConst <> cvRef) "Json::Value"
     inName = "jsVal"
 
     outExpr = EVarLiteral outName
@@ -107,42 +119,28 @@ compileToJSONGetter (AsObj (AtField f asm)) expr =
   EIndexOperator expr (EStringLiteral f)
     & compileToJSONGetter asm
 compileToJSONGetter (AsObj (FieldsToStruct name fs)) expr =
-  EWorkaround $
-    [name <> " {"]
-      <> foo
-      <> ["}"]
+  EListInitialization (Just $ CppTypeNormal cvNone name) $ fmap compile fs
   where
-    foo :: [L.Text]
-    foo = concatMap (appendOnLast "," . cppExprRenderMulti . EIndent . compile) $ fs
-
     compile (f, asm) = EIndexOperator expr (EStringLiteral f) & compileToJSONGetter asm
 compileToJSONGetter (AsArray (EachElement asm)) expr =
-  EWorkaround $
-    []
-      <> [ "[&] {",
-           "  auto ret = std::vector<" <> retTypeText <> ">{};",
-           "  for (const auto& v : " <> expr' <> ") {",
-           "    ret.emplace_back("
-         ]
-      <> fmap ("      " <>) vGetter
-      <> [ "    );",
-           "  }",
-           "  return ret;",
-           "}()"
-         ]
+  EIIFE
+    [ SVarDeclWithInit auto varRet (EListInitialization (vectorTyOf retTy) []),
+      SRangeFor constRefAuto "v" expr $
+        [ SJustExpr $ EMethodCall ret "emplace_back" [retGetter]
+        ],
+      SReturn ret
+    ]
   where
-    retTypeText = cppTypeRender $ N.head $ compileToResultTypes asm cvNone
-    expr' = cppExprRender expr
-    vGetter = cppExprRenderMulti $ compileToJSONGetter asm $ EVarLiteral "v"
+    auto = CppTypeNormal cvNone "auto"
+    constRefAuto = CppTypeNormal (cvConst <> cvRef) "auto"
+    varRet = "ret" :: L.Text
+    ret = EVarLiteral varRet
+    vectorTyOf ty = Just $ CppTypeGeneric cvNone "std::vector" [ty]
+    retTy = N.head $ compileToResultTypes asm cvNone
+    retGetter = compileToJSONGetter asm $ EVarLiteral "v"
 compileToJSONGetter (AsArray (AtNth n asm)) expr =
   compileToJSONGetter asm $ EIndexOperator expr (ENumberLiteral n)
 compileToJSONGetter (AsArray (IndexesToStruct name iAndAsms)) expr =
-  EWorkaround $
-    [name <> " {"]
-      <> fields
-      <> ["}"]
+  EListInitialization (Just $ CppTypeNormal cvNone name) $ fmap compile iAndAsms
   where
-    fields :: [L.Text]
-    fields = concatMap (appendOnLast "," . cppExprRenderMulti . EIndent . compile) $ iAndAsms
-
     compile (i, _f, asm) = EIndexOperator expr (ENumberLiteral i) & compileToJSONGetter asm
