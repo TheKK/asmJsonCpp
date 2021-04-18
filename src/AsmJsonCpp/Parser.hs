@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 
 module AsmJsonCpp.Parser
   ( Parser,
@@ -69,14 +68,15 @@ structName :: Parser L.Text
 structName = identifier <?> "struct name"
 
 identifier :: Parser L.Text
-identifier = lexeme (fromString <$> (some $ C.alphaNumChar <|> satisfy (== '_'))) <?> "identifier"
+identifier = lexeme (fromString <$> some (C.alphaNumChar <|> satisfy (== '_'))) <?> "identifier"
 
 nth :: Parser Int
 nth = lexeme Lex.decimal
 
 array :: Parser a -> Parser [a]
-array p = between (symbol "[") (symbol "]") $ do
-  p `sepEndBy` symbol ","
+array p =
+  between (symbol "[") (symbol "]") $
+    p `sepEndBy` symbol ","
 
 field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
@@ -113,4 +113,4 @@ keyword :: L.Text -> Parser L.Text
 keyword t = lexeme . try $ C.string t <* lookAhead C.space1
 
 symbol :: L.Text -> Parser L.Text
-symbol t = Lex.symbol space t
+symbol = Lex.symbol space
