@@ -30,7 +30,7 @@ compileToFullCppDoc asm =
       functionBody
     ]
   where
-    typeForwardDecls = vsep $ mapMaybe cppTypeRenderForwardDeclaration' resultTypes
+    typeForwardDecls = vsep $ mapMaybe cppTypeRenderForwardDeclaration resultTypes
     typeDefs' = case typeDefs of
       [] ->
         [ "// Wow, primitive types rocks right?",
@@ -38,8 +38,8 @@ compileToFullCppDoc asm =
           "// It's string! It's user name! It's email address as well!! What a lovely day."
         ]
       defs -> defs
-    functionBody = cppFnRender' . compileToCppFn "from_json" $ asm
-    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition' resultTypes
+    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
+    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition resultTypes
 
     resultTypes = toList $ compileToResultTypes asm cvNone
 
