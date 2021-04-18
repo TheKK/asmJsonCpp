@@ -54,9 +54,9 @@ data CppType
   deriving (Show)
 
 cppTypeRender :: CppType -> Doc ann
-cppTypeRender (CppTypeNormal cv ty) = pretty $ ty <> cppCVRender cv
-cppTypeRender (CppTypeGeneric cv ty args) = pretty ty <> encloseSep "<" ">" ", " (fmap cppTypeRender args) <> cppCVRender' cv
-cppTypeRender (CppTypeStruct cv name _fields) = pretty $ name <> cppCVRender cv
+cppTypeRender (CppTypeNormal cv ty) = pretty ty <> cppCVRender cv
+cppTypeRender (CppTypeGeneric cv ty args) = pretty ty <> encloseSep "<" ">" ", " (fmap cppTypeRender args) <> cppCVRender cv
+cppTypeRender (CppTypeStruct cv name _fields) = pretty name <> cppCVRender cv
 
 -- | This function only render 'CppTypeStruct' since other type should be
 --  pre-defined.
@@ -80,11 +80,8 @@ cppTypeRenderDefinition (CppTypeStruct _cv name fields) =
       cppTypeRender fieldTy <+> pretty fieldName <> ";"
 cppTypeRenderDefinition _ = Nothing
 
-cppCVRender :: CppCV -> L.Text
-cppCVRender = L.pack . show . cppCVRender'
-
-cppCVRender' :: CppCV -> Doc ann
-cppCVRender' (CppCV c r) =
+cppCVRender :: CppCV -> Doc ann
+cppCVRender (CppCV c r) =
   -- TODO The space before const is a workaround, should use more elegant solution.
   concatWith (<>) [opt c " const", opt r "&"]
   where
@@ -113,10 +110,10 @@ cppExprRender (EIndexOperator expr i) = cppExprRender expr <> brackets (align $ 
 cppExprRender (EMethodCall expr method args) =
   hcat
     [ cppExprRender expr,
-      "." <> pretty method <> parens (sep $ argsRender' args)
+      "." <> pretty method <> parens (sep $ argsRender args)
     ]
 cppExprRender (EFunctionCall fn args) =
-  fillCat [pretty fn, parens $ nest 2 $ fillCat $ argsRender' args]
+  fillCat [pretty fn, parens $ nest 2 $ fillCat $ argsRender args]
 cppExprRender (EBoolLiteral True) = "true"
 cppExprRender (EBoolLiteral False) = "false"
 cppExprRender (ENumberLiteral n) = pretty n
@@ -139,8 +136,8 @@ cppAndAll cs
   | null cs = EBoolLiteral True
   | otherwise = foldr1 (EInfixFn "&&") cs
 
-argsRender' :: [CppExpr] -> [Doc ann]
-argsRender' = punctuate ", " . fmap cppExprRender
+argsRender :: [CppExpr] -> [Doc ann]
+argsRender = punctuate ", " . fmap cppExprRender
 
 data CppStmt
   = SIf CppExpr [CppStmt]
