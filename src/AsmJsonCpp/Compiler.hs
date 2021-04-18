@@ -25,8 +25,13 @@ import qualified RIO.NonEmpty as N
 compileToFullCppDoc :: AsmJson -> Doc ann
 compileToFullCppDoc asm =
   vsep
-    [ typeForwardDecls,
+    [ "// Forward declarations.",
+      typeForwardDecls,
+      mempty,
+      "// Struct declarations.",
       vsep typeDefs',
+      mempty,
+      "// The function.",
       functionBody
     ]
   where

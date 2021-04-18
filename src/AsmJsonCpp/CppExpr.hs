@@ -190,7 +190,7 @@ cppFnRender (CppFn fnName args returnType fnBody) =
         <+> "->"
         <+> cppTypeRender returnType
         <+> "{",
-      indent 2 $ vsep $ fmap cppStmtRender fnBody,
+      indent 2 $ vsep $ punctuate line $ fmap cppStmtRender fnBody,
       "}"
     ]
 
