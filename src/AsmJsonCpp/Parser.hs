@@ -26,7 +26,7 @@ parseAsmJson' :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
 parseAsmJson' = parse (space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
-asmJson = lexeme $ choice [asInt, asBool, asString, asObj, asArray]
+asmJson = space *> choice [asInt, asBool, asString, asObj, asArray] <* eof
   where
     asInt = AsInt <$ symbol "AsInt"
 
@@ -62,13 +62,13 @@ asmJson = lexeme $ choice [asInt, asBool, asString, asObj, asArray]
         <*> array indexField
 
 fieldName :: Parser L.Text
-fieldName = identifier <?> "field name"
+fieldName = lexeme identifier <?> "field name"
 
 structName :: Parser L.Text
-structName = identifier <?> "struct name"
+structName = lexeme identifier <?> "struct name"
 
 identifier :: Parser L.Text
-identifier = lexeme (fromString <$> some (C.alphaNumChar <|> satisfy (== '_'))) <?> "identifier"
+identifier = fromString <$> some (C.alphaNumChar <|> C.char '_') <* C.space1
 
 nth :: Parser Int
 nth = lexeme Lex.decimal
@@ -110,7 +110,7 @@ space =
     (Lex.skipBlockComment "/*" "*/")
 
 keyword :: L.Text -> Parser L.Text
-keyword t = lexeme . try $ C.string t <* lookAhead C.space1
+keyword t = lexeme $ C.string t <* C.space1
 
 symbol :: L.Text -> Parser L.Text
 symbol = Lex.symbol space
