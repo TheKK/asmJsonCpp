@@ -23,7 +23,7 @@ server = compile_v1
 
 compile_v1 :: L.Text -> Servant.Handler L.Text
 compile_v1 input =
-  case parseAsmJson $ input of
+  case parseAsmJson input of
     Left err -> throwError $ err400 {errBody = BL.fromStrict . encodeUtf8 . L.toStrict $ err}
     Right asm -> return $ compileToFullCppSourceCode asm
 

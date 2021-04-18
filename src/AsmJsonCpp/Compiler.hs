@@ -14,13 +14,10 @@ where
 
 import AsmJsonCpp.Asm
 import AsmJsonCpp.CppExpr
-import AsmJsonCpp.Internal.List
 import AsmJsonCpp.TypeCheck
 import qualified Data.Text.Lazy as L
-import qualified Data.Text.Lazy.IO as L
 import Data.Text.Prettyprint.Doc
 import Data.Text.Prettyprint.Doc.Render.Text
-import Data.Text.Prettyprint.Doc.Util
 import RIO
 import qualified RIO.NonEmpty as N
 
@@ -85,13 +82,13 @@ compileToResultTypes (AsObj (FieldsToStruct name fields)) cv =
     rootOfRestTypes = fmap (second N.head) nameAndtypeOfFields
     restTypes = toList . snd =<< nameAndtypeOfFields
     nameAndtypeOfFields =
-      (fmap . second) (\asm -> compileToResultTypes asm cvNone) fields
+      (fmap . second) (`compileToResultTypes` cvNone) fields
 compileToResultTypes (AsArray (AtNth _ asm)) cv = compileToResultTypes asm cv
 compileToResultTypes (AsArray (EachElement asm)) cv =
   thisType N.:| toList restTypes
   where
     thisType = CppTypeGeneric cv "std::vector" [rootOfRestTypes]
-    rootOfRestTypes = N.head $ restTypes
+    rootOfRestTypes = N.head restTypes
     restTypes = compileToResultTypes asm cvNone
 compileToResultTypes (AsArray (IndexesToStruct name iAndAsms)) cv =
   thisType N.:| restTypes
@@ -100,7 +97,7 @@ compileToResultTypes (AsArray (IndexesToStruct name iAndAsms)) cv =
     rootOfRestTypes = fmap (second N.head) nameAndtypeOfFields
     restTypes = toList . trd =<< nameAndtypeOfFields
     nameAndtypeOfFields =
-      (fmap . second) (\asm -> compileToResultTypes asm cvNone) iAndAsms
+      (fmap . second) (`compileToResultTypes` cvNone) iAndAsms
 
 trd :: (a, b, c) -> c
 trd (_, _, c) = c

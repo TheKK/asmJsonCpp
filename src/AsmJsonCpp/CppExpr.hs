@@ -25,12 +25,9 @@ module AsmJsonCpp.CppExpr
   )
 where
 
-import AsmJsonCpp.Internal.List
 import qualified Data.Text.Lazy as L
 import Data.Text.Prettyprint.Doc
-import qualified Data.Text.Prettyprint.Doc as P
 import RIO
-import RIO.List
 import RIO.List.Partial
 
 data CppCV = CppCV

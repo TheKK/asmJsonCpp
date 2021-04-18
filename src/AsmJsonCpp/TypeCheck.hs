@@ -90,9 +90,9 @@ typeCheck (AsObj obj) expr = ShouldBeObj expr : typeCheckObj obj expr
 typeCheck (AsArray arr) expr = ShouldBeArr expr : typeCheckArr arr expr
 
 typeCheckArr :: AsmArray -> CppExpr -> [TypeCheck]
-typeCheckArr (EachElement as) expr = pure $ ShouldBeAllChecked expr $ [typeCheck as]
+typeCheckArr (EachElement as) expr = pure $ ShouldBeAllChecked expr [typeCheck as]
 typeCheckArr (AtNth nth as) expr =
-  pure $ ShouldNthBeChecked nth expr $ [typeCheck as]
+  pure $ ShouldNthBeChecked nth expr [typeCheck as]
 typeCheckArr (IndexesToStruct _ iAndAsms) expr =
   fmap (\(i, _name, asm) -> ShouldAllBeChecked $ typeCheckArr (AtNth i asm) expr) iAndAsms
 
@@ -102,4 +102,4 @@ typeCheckObj (AtField f as) expr = checkIsMember : typeCheck as atExpr
     checkIsMember = ShouldBeMember expr $ EStringLiteral f
     atExpr = EIndexOperator expr (EStringLiteral f)
 typeCheckObj (FieldsToStruct _ fs) expr =
-  (pure . ShouldAllBeChecked . flip typeCheckObj expr . uncurry AtField) =<< fs
+  ShouldAllBeChecked . flip typeCheckObj expr . uncurry AtField <$> fs

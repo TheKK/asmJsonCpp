@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module AsmJsonCpp.Asm
   ( AsmObj (..),
     AsmArray (..),
