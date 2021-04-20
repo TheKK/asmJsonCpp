@@ -29,9 +29,7 @@ asmJson :: Parser AsmJson
 asmJson = choice [asInt, asBool, asString, asObj, asArray]
   where
     asInt = AsInt <$ symbol "AsInt"
-
     asBool = AsBool <$ symbol "AsBool"
-
     asString = AsString <$ symbol "AsString"
 
     asObj =
