@@ -83,18 +83,15 @@ array p =
 
 field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
-  name <- fieldNameWithoutSpace
-  _ <- symbol ","
+  name <- fieldNameWithoutSpace <* symbol ","
   asm <- asmJson
 
   return (name, asm)
 
 indexField :: Parser (Int, L.Text, AsmJson)
 indexField = between (symbol "(") (symbol ")") $ do
-  i <- index
-  _ <- symbol ","
-  name <- fieldNameWithoutSpace
-  _ <- symbol ","
+  i <- index <* symbol ","
+  name <- fieldNameWithoutSpace <* symbol ","
   asm <- asmJson
 
   return (i, name, asm)
