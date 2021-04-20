@@ -62,16 +62,19 @@ asmJson = choice [asInt, asBool, asString, asObj, asArray]
         <*> array indexField
 
 fieldName :: Parser L.Text
-fieldName = lexeme identifier <?> "field name"
+fieldName = lexeme (identifier <* C.space1) <?> "field name"
+
+fieldNameWithoutSpace :: Parser L.Text
+fieldNameWithoutSpace = lexeme identifier <?> "field name"
 
 structName :: Parser L.Text
-structName = lexeme identifier <?> "struct name"
+structName = lexeme (identifier <* C.space1) <?> "struct name"
 
 identifier :: Parser L.Text
-identifier = fromString <$> some (C.alphaNumChar <|> C.char '_') <* C.space1
+identifier = fromString <$> some (C.alphaNumChar <|> C.char '_')
 
 nth :: Parser Int
-nth = lexeme Lex.decimal
+nth = lexeme (Lex.decimal <* C.space1)
 
 array :: Parser a -> Parser [a]
 array p =
@@ -80,7 +83,7 @@ array p =
 
 field :: Parser (L.Text, AsmJson)
 field = between (symbol "(") (symbol ")") $ do
-  name <- fieldName
+  name <- fieldNameWithoutSpace
   _ <- symbol ","
   asm <- asmJson
 
@@ -90,7 +93,7 @@ indexField :: Parser (Int, L.Text, AsmJson)
 indexField = between (symbol "(") (symbol ")") $ do
   i <- index
   _ <- symbol ","
-  name <- fieldName
+  name <- fieldNameWithoutSpace
   _ <- symbol ","
   asm <- asmJson
 
