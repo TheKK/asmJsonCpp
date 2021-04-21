@@ -41,7 +41,7 @@
           in toolsDrv ++ toolsProjectPlanNix;
         gc-roots = [ asmJsonCpp.stack-nix asmJsonCpp.roots ] ++ tools-gc-roots;
 
-      in asmJsonCpp-flake // {
+      in pkgs.lib.recursiveUpdate asmJsonCpp-flake {
         defaultPackage =
           asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
         defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
