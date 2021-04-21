@@ -40,9 +40,13 @@ cppParse =
 cppRun :: Args -> RIO app ()
 cppRun input = liftIO $ do
   input' <-
-    fromMaybe
-      (L.fromStrict <$> T.getContents)
-      (return . L.pack <$> input)
+    -- Use stripEnd to remove newline so we won't always got <empty line> error
+    -- message. (The new line is empty while reading from stdin)
+    L.stripEnd
+      <$> maybe
+        (L.fromStrict <$> T.getContents)
+        (return . L.pack)
+        input
 
   case parseAsmJson input' of
     Left err -> L.putStrLn err
