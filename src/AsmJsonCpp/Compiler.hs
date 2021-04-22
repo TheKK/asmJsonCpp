@@ -24,29 +24,51 @@ import qualified RIO.NonEmpty as N
 -- data CppFn = CppFn FunctionName [(CppType, L.Text)] CppType [CppStmt]
 compileToFullCppDoc :: AsmJson -> Doc ann
 compileToFullCppDoc asm =
-  vsep
-    [ "// Forward declarations.",
-      typeForwardDecls,
-      mempty,
-      "// Struct declarations.",
-      vsep typeDefs',
-      mempty,
-      "// The function.",
-      functionBody
+  vsep . join $
+    [ typeForwardDeclBlock,
+      typeDefBlock,
+      primitiveTypeBlock,
+      functionBlock
     ]
   where
-    typeForwardDecls = vsep $ mapMaybe cppTypeRenderForwardDeclaration resultTypes
-    typeDefs' = case typeDefs of
-      [] ->
-        [ "// Wow, primitive types rocks right?",
-          "// Let's use them everywhere and get confused.",
-          "// It's string! It's user name! It's email address as well!! What a lovely day."
-        ]
-      defs -> defs
-    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
-    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition resultTypes
+    typeForwardDeclBlock =
+      if null typeForwardDeclDocs
+        then []
+        else
+          [ typeForwardDeclComment,
+            vsep typeForwardDeclDocs,
+            mempty
+          ]
 
+    typeForwardDeclComment = if null typeForwardDeclDocs then line else "// Forward declarations."
+    typeForwardDeclDocs = mapMaybe cppTypeRenderForwardDeclaration resultTypes
+
+    typeDefBlock =
+      if null typeDefs
+        then []
+        else
+          [ "// Struct declarations.",
+            vsep $ punctuate hardline typeDefs,
+            mempty
+          ]
+
+    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition resultTypes
     resultTypes = toList $ compileToResultTypes asm cvNone
+
+    primitiveTypeBlock = case N.head $ compileToResultTypes asm cvNone of
+      (CppTypeNormal _ ty) ->
+        [ "// Wow, primitive types rocks right?",
+          "// Let's use " <> pretty ty <> " everywhere and get confused together.",
+          "// It's string! It's user name! It's email address as well!! What a lovely day.",
+          mempty
+        ]
+      _ -> []
+
+    functionBlock =
+      [ "// The function.",
+        functionBody
+      ]
+    functionBody = cppFnRender . compileToCppFn "from_json" $ asm
 
 compileToFullCppSourceCode :: AsmJson -> L.Text
 compileToFullCppSourceCode =
