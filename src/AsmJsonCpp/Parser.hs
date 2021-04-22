@@ -10,6 +10,7 @@ where
 import AsmJsonCpp.Asm
 import qualified Data.Text.Lazy as L
 import RIO hiding (many, some, try)
+import RIO.Char (isAlphaNum)
 import Text.Megaparsec
 import qualified Text.Megaparsec.Char as C
 import qualified Text.Megaparsec.Char.Lexer as Lex
@@ -69,7 +70,7 @@ structName :: Parser L.Text
 structName = lexeme (identifier <* C.space1) <?> "struct name"
 
 identifier :: Parser L.Text
-identifier = fromString <$> some (C.alphaNumChar <|> C.char '_')
+identifier = takeWhile1P Nothing (\c -> isAlphaNum c || c == '_')
 
 nth :: Parser Int
 nth = lexeme (Lex.decimal <* C.space1)
