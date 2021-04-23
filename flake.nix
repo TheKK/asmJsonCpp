@@ -42,6 +42,13 @@
         gc-roots = [ asmJsonCpp.stack-nix asmJsonCpp.roots ] ++ tools-gc-roots;
 
       in pkgs.lib.recursiveUpdate asmJsonCpp-flake {
+        inherit asmJsonCpp;
+        packages = {
+          "asmJsonCpp:exe:asmJsonCpp-exe:static" =
+            asmJsonCpp.projectCross.musl64.hsPkgs.asmJsonCpp.components.exes.asmJsonCpp-exe
+            ;
+        };
+
         defaultPackage =
           asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
         defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";

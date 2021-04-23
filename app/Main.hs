@@ -43,7 +43,8 @@ main :: IO ()
 main = do
   (options, runSubCommand) <-
     simpleOptions
-      $(simpleVersion Paths_asmJsonCpp.version)
+      -- $(simpleVersion Paths_asmJsonCpp.version)
+      "1.0.1"
       "Header for command line arguments"
       "Program description, also for command line arguments"
       ( Options
