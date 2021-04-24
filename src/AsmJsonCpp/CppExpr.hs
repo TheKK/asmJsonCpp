@@ -69,11 +69,14 @@ cppTypeRenderForwardDeclaration _ = Nothing
 cppTypeRenderDefinition :: CppType -> Maybe (Doc ann)
 cppTypeRenderDefinition (CppTypeStruct _cv name fields) =
   Just $
-    vsep
-      [ "struct" <+> pretty name <+> "final {",
-        indent 2 $ vsep fields',
-        "};"
-      ]
+    if null fields'
+      then "struct" <+> pretty name <+> "final {};"
+      else
+        vsep
+          [ "struct" <+> pretty name <+> "final {",
+            indent 2 $ vsep fields',
+            "};"
+          ]
   where
     fields' = fmap toDoc fields
     toDoc (fieldName, fieldTy) =
