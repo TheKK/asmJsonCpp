@@ -18,7 +18,7 @@ exampleSubCmd :: ExceptT (RIO app ()) (Writer (Mod CommandFields (RIO app ()))) 
 exampleSubCmd =
   addCommand
     "example"
-    "print example query string for you"
+    "Print example query string for you. Good starting point for first time user."
     exampleRun
     exampleParse
 

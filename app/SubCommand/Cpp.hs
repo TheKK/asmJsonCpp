@@ -25,7 +25,7 @@ cppSubCmd :: ExceptT (RIO app ()) (Writer (Mod CommandFields (RIO app ()))) ()
 cppSubCmd =
   addCommand
     "cpp"
-    "generate cpp source code to validate & parse JSON value"
+    "Generate cpp code to validate and parse JSON value."
     cppRun
     cppParse
 
@@ -34,7 +34,7 @@ cppParse =
   optional $
     strArgument
       ( metavar "QUERY"
-          <> help "query string for JSON parsing, if not present then read from stdin"
+          <> help "Query string that describes JSON format, if not present then read it from stdin"
       )
 
 cppRun :: Args -> RIO app ()

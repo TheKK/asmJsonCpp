@@ -44,8 +44,12 @@ main = do
   (options, runSubCommand) <-
     simpleOptions
       $(simpleVersion Paths_asmJsonCpp.version)
-      "Header for command line arguments"
-      "Program description, also for command line arguments"
+      "Tool that takes your job but makes you happy."
+      ( join
+          [ "AsmJsonCpp let you use high level yet simple language to solve tedious jsoncpp problem. ",
+            "Try the 'example' command to see how the language looks like."
+          ]
+      )
       ( Options
           <$> switch
             ( long "verbose"
