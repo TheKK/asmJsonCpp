@@ -38,6 +38,7 @@ import RIO
 -- | Describe what 'CppExpr' should be checked.
 data TypeCheck
   = ShouldBeInt CppExpr
+  | ShouldBeDouble CppExpr
   | ShouldBeBool CppExpr
   | ShouldBeString CppExpr
   | ShouldBeObj CppExpr
@@ -54,6 +55,7 @@ compileTypeChecks cs = cppAndAll . fmap compileTypeCheck $ cs
 
 compileTypeCheck :: TypeCheck -> CppExpr
 compileTypeCheck (ShouldBeInt expr) = EMethodCall expr "isInt" []
+compileTypeCheck (ShouldBeDouble expr) = EMethodCall expr "isDouble" []
 compileTypeCheck (ShouldBeBool expr) = EMethodCall expr "isBool" []
 compileTypeCheck (ShouldBeString expr) = EMethodCall expr "isString" []
 compileTypeCheck (ShouldBeObj expr) = EMethodCall expr "isObject" []
@@ -84,6 +86,7 @@ typeCheck ::
   CppExpr ->
   [TypeCheck]
 typeCheck AsInt expr = pure . ShouldBeInt $ expr
+typeCheck AsDouble expr = pure . ShouldBeDouble $ expr
 typeCheck AsBool expr = pure . ShouldBeBool $ expr
 typeCheck AsString expr = pure . ShouldBeString $ expr
 typeCheck (AsObj obj) expr = ShouldBeObj expr : typeCheckObj obj expr

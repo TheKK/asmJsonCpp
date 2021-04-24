@@ -67,6 +67,7 @@ compileToFullCppDoc asm =
 
     primitiveTypeDesc = \case
       "int" -> "somebody's age, your phone number, some random id"
+      "double" -> "random number, CPU usage, uptime, temperature"
       "bool" -> "to fork, not to fork, not to not to fork, burn you PC"
       "std::string" -> "filesystem path, email address, URL"
       _ -> "anything"
@@ -110,6 +111,7 @@ compileToCppFn fnName asm =
 
 compileToResultTypes :: AsmJson -> CppCV -> N.NonEmpty CppType
 compileToResultTypes AsInt cv = pure $ CppTypeNormal cv "int"
+compileToResultTypes AsDouble cv = pure $ CppTypeNormal cv "double"
 compileToResultTypes AsBool cv = pure $ CppTypeNormal cv "bool"
 compileToResultTypes AsString cv = pure $ CppTypeNormal cv "std::string"
 compileToResultTypes (AsObj (AtField _ asm)) cv = compileToResultTypes asm cv
@@ -148,6 +150,7 @@ compileToJSONTypeCheck asm expr = SIf checksExpr [SReturn $ EBoolLiteral False]
 
 compileToJSONGetter :: AsmJson -> CppExpr -> CppExpr
 compileToJSONGetter AsInt expr = EMethodCall expr "asInt" []
+compileToJSONGetter AsDouble expr = EMethodCall expr "asDouble" []
 compileToJSONGetter AsBool expr = EMethodCall expr "asBool" []
 compileToJSONGetter AsString expr = EMethodCall expr "asString" []
 compileToJSONGetter (AsObj (AtField f asm)) expr =

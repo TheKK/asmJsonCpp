@@ -27,9 +27,10 @@ parseAsmJson' :: L.Text -> Either (ParseErrorBundle L.Text Void) AsmJson
 parseAsmJson' = parse (space *> asmJson <* eof) "INPUT"
 
 asmJson :: Parser AsmJson
-asmJson = choice [asInt, asBool, asString, asObj, asArray]
+asmJson = choice [asInt, asDouble, asBool, asString, asObj, asArray]
   where
     asInt = AsInt <$ symbol "AsInt"
+    asDouble = AsDouble <$ symbol "AsDouble"
     asBool = AsBool <$ symbol "AsBool"
     asString = AsString <$ symbol "AsString"
 

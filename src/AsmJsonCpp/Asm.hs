@@ -25,6 +25,7 @@ data AsmArray
 
 data AsmJson
   = AsInt
+  | AsDouble
   | AsString
   | AsBool
   | AsObj AsmObj
