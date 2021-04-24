@@ -41,7 +41,7 @@ compileToFullCppDoc asm =
           ]
 
     typeForwardDeclComment = if null typeForwardDeclDocs then line else "// Forward declarations."
-    typeForwardDeclDocs = mapMaybe cppTypeRenderForwardDeclaration resultTypes
+    typeForwardDeclDocs = mapMaybe cppTypeRenderForwardDeclaration $ toList resultTypes
 
     typeDefBlock =
       if null typeDefs
@@ -52,10 +52,9 @@ compileToFullCppDoc asm =
             mempty
           ]
 
-    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition resultTypes
-    resultTypes = toList $ compileToResultTypes asm cvNone
+    typeDefs = reverse $ mapMaybe cppTypeRenderDefinition $ toList resultTypes
 
-    primitiveTypeBlock = case N.head $ compileToResultTypes asm cvNone of
+    primitiveTypeBlock = case returnType of
       (CppTypeNormal _ ty) ->
         [ "// Wow, primitive types rocks right?",
           "// Let's use " <> pretty ty <> " everywhere and get confused together.",
@@ -63,6 +62,10 @@ compileToFullCppDoc asm =
           mempty
         ]
       _ -> []
+
+    -- TODO It's super weird that the we can find return type from result types.
+    returnType = N.head resultTypes
+    resultTypes = compileToResultTypes asm cvNone
 
     functionBlock =
       [ "// The parsing function.",
