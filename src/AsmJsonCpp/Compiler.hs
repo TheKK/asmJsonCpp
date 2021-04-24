@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
@@ -58,10 +59,17 @@ compileToFullCppDoc asm =
       (CppTypeNormal _ ty) ->
         [ "// Wow, primitive types rocks right?",
           "// Let's use " <> pretty ty <> " everywhere and get confused together.",
-          "// It's string! It's user name! It's email address as well!! What a lovely day.",
+          "// It could be" <+> primitiveTypeDesc ty <> "!!",
+          "// Just like 'assembly' everything is 'word'. What a lovely day.",
           mempty
         ]
       _ -> []
+
+    primitiveTypeDesc = \case
+      "int" -> "somebody's age, your phone number, some random id"
+      "bool" -> "to fork, not to fork, not to not to fork, burn you PC"
+      "std::string" -> "filesystem path, email address, URL"
+      _ -> "anything"
 
     -- TODO It's super weird that the we can find return type from result types.
     returnType = N.head resultTypes
