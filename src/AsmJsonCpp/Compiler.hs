@@ -65,7 +65,7 @@ compileToFullCppDoc asm =
       _ -> []
 
     functionBlock =
-      [ "// The function.",
+      [ "// The parsing function.",
         functionBody
       ]
     functionBody = cppFnRender . compileToCppFn "from_json" $ asm
