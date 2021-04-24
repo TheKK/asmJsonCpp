@@ -75,8 +75,8 @@ cppTypeRenderDefinition (CppTypeStruct _cv name fields) =
         "};"
       ]
   where
-    fields' = fmap toFieldText fields
-    toFieldText (fieldName, fieldTy) =
+    fields' = fmap toDoc fields
+    toDoc (fieldName, fieldTy) =
       cppTypeRender fieldTy <+> pretty fieldName <> ";"
 cppTypeRenderDefinition _ = Nothing
 
