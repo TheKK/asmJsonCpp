@@ -28,6 +28,29 @@
         asmJsonCpp = pkgs.asmJsonCpp;
         asmJsonCpp-flake = asmJsonCpp.flake { };
 
+        musl-asmJsonCpp-flake = asmJsonCpp.projectCross.musl64.flake { };
+
+        static-asmJsonCpp-server = musl-asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-server"
+          .overrideAttrs (
+            self: {
+              # XXX This remove unused dependencies and binary still being "not stripped".
+              dontStrip = false;
+            });
+
+        dockerImage = pkgs.dockerTools.buildLayeredImage {
+            name = "asmJsonCpp-server";
+            tag = "latest";
+            config = {
+              Env = [
+                "PORT=8080"
+              ];
+              Cmd = [ "${static-asmJsonCpp-server}/bin/asmJsonCpp-server" ];
+              ExposedPorts = {
+                "8080" = {};
+              };
+            };
+          };
+
         tools = {
             cabal = "3.2.0.0";
             haskell-language-server = "1.0.0.0";
@@ -45,6 +68,7 @@
         defaultPackage =
           asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
         defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
+        packages = { inherit dockerImage; };
         devShell = asmJsonCpp.shellFor {
           withHoogle = false;
           inherit tools;
