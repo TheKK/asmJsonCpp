@@ -34,6 +34,8 @@
 
         musl-asmJsonCpp-flake = asmJsonCpp.projectCross.musl64.flake { };
 
+        static-asmJsonCpp-exe = musl-asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
+
         static-asmJsonCpp-server = musl-asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-server"
           .overrideAttrs (
             self: {
@@ -70,9 +72,9 @@
 
       in pkgs.lib.recursiveUpdate asmJsonCpp-flake {
         defaultPackage =
-          asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
-        defaultApp = asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
-        packages = { inherit dockerImage; };
+          musl-asmJsonCpp-flake.packages."asmJsonCpp:exe:asmJsonCpp-exe";
+        defaultApp = musl-asmJsonCpp-flake.apps."asmJsonCpp:exe:asmJsonCpp-exe";
+        packages = { inherit dockerImage; static = static-asmJsonCpp-exe; };
         devShell = asmJsonCpp.shellFor {
           withHoogle = false;
           inherit tools;
