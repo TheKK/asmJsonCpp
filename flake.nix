@@ -5,6 +5,10 @@
     haskell-nix.url = "github:input-output-hk/haskell.nix";
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.follows = "haskell-nix/nixpkgs";
+    flake-compat = {
+      url = "github:edolstra/flake-compat/12c64ca55c1014cdc1b16ed5a804aa8576601ff2";
+      flake = false;
+    };
   };
 
   outputs = { self, nixpkgs, flake-utils, haskell-nix, ... }:
