@@ -43,7 +43,7 @@ main :: IO ()
 main = do
   (options, runSubCommand) <-
     simpleOptions
-      $(simpleVersion Paths_asmJsonCpp.version)
+      "0.1"
       "Tool that takes your job but makes you happy."
       ( join
           [ "AsmJsonCpp let you use high level yet simple language to solve tedious jsoncpp problem. ",
