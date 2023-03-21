@@ -53,9 +53,11 @@ compileTypeChecks :: [TypeCheck] -> CppExpr
 compileTypeChecks [] = EBoolLiteral True
 compileTypeChecks cs = cppAndAll . fmap compileTypeCheck $ cs
 
+-- TODO We don't use isInt or isDouble here since the old version of JsonCpp has too
+-- many restric that 10 is not double. (It's int)
 compileTypeCheck :: TypeCheck -> CppExpr
-compileTypeCheck (ShouldBeInt expr) = EMethodCall expr "isInt" []
-compileTypeCheck (ShouldBeDouble expr) = EMethodCall expr "isDouble" []
+compileTypeCheck (ShouldBeInt expr) = EMethodCall expr "isNumeric" [] 
+compileTypeCheck (ShouldBeDouble expr) = EMethodCall expr "isNumeric" []
 compileTypeCheck (ShouldBeBool expr) = EMethodCall expr "isBool" []
 compileTypeCheck (ShouldBeString expr) = EMethodCall expr "isString" []
 compileTypeCheck (ShouldBeObj expr) = EMethodCall expr "isObject" []
